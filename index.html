@@ -88,7 +88,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 .fixed-reference span{font-size:14px}
 .fixed-reference strong{font-size:15px;color:#a87912}
 
-.stock-compact .stock-details-extra{display:none}.stock-item-arrow{width:24px!important;height:24px!important;padding:0!important;border:1px solid #cbd5e1!important;border-radius:6px!important;background:#fff!important;color:#64748b!important;font-size:13px!important;font-weight:900!important;line-height:22px!important;cursor:pointer!important}.stock-item-sold{width:auto!important;height:28px!important;padding:0 9px!important;border:0!important;border-radius:7px!important;background:#b91c1c!important;color:#fff!important;font-size:11px!important;font-weight:900!important;cursor:pointer!important}.stock-item-sold:hover{opacity:.9}</style>
+.stock-compact .stock-details-extra{display:none}.stock-item-arrow{width:24px!important;height:24px!important;padding:0!important;border:1px solid #cbd5e1!important;border-radius:6px!important;background:#fff!important;color:#64748b!important;font-size:13px!important;font-weight:900!important;line-height:22px!important;cursor:pointer!important}.stock-item-sold{width:auto!important;height:28px!important;padding:0 9px!important;border:1px solid #cbd5e1!important;border-radius:7px!important;background:#f8fafc!important;color:#334155!important;font-size:11px!important;font-weight:700!important;cursor:pointer!important}.stock-item-sold:hover{background:#f1f5f9!important}</style>
 </head>
 <body>
 <header class="app-header">
@@ -142,7 +142,10 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 <div class="card stock-page" id="stockPage">
  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
   <h3 style="margin:0">📦 Estoque de veículos</h3>
-  <button class="secondary small-btn" onclick="closeStockPage()">← Voltar</button>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+   <button class="secondary small-btn" onclick="closeStockPage()">← Voltar</button>
+   <button class="secondary small-btn" id="stockExpandBtn" onclick="toggleStockDetailsPage()">＋</button>
+  </div>
  </div>
  <div id="stockList" style="margin-top:10px"><span class="muted">Nenhum veículo em estoque.</span></div>
  <div class="stock-summary">
@@ -781,7 +784,12 @@ function openStockPage(){
  renderStock();
  window.scrollTo({top:0,behavior:"smooth"});
 }
-function toggleStockDetailsPage(){ renderStock(); }
+function toggleStockDetailsPage(){
+ const extras=document.querySelectorAll("#stockList .stock-details-extra");
+ const hidden=extras.length ? extras[0].style.display==="none" : true;
+ extras.forEach(el=>el.style.display=hidden?"block":"none");
+ const btn=$("stockExpandBtn"); if(btn)btn.textContent=hidden?"−":"＋";
+}
 function closeStockPage(){
  $("stockPage").style.display="none";
  $("stockNav").classList.remove("active");
