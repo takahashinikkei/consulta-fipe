@@ -64,7 +64,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 .favorite-fields input{height:40px;font-size:14px;border-radius:10px;padding:0 10px}
 .favorite-financial{margin-top:8px}
 .favorite-financial .info{padding:8px 10px;font-size:12px}
-.favorite-financial .info b{font-size:9px;margin-bottom:2px}.sold-page{display:none}.sold-back{margin-bottom:12px}.sold-btn{background:#047857;color:#fff;border:0;font-weight:850}.stock-btn{background:#047857;color:#fff;border:0;font-weight:850}.sold-btn{background:#e5e7eb;color:#374151;border:1px solid #cbd5e1}.status-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px;font-size:11px;font-weight:900;margin-left:6px;vertical-align:middle}.status-stock{background:#047857;color:#fff}.status-sold{background:#e5e7eb;color:#374151;border:1px solid #cbd5e1}.stock-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.stock-fields label{font-size:11px;margin:3px 0 4px}.stock-fields input{height:40px;font-size:14px;border-radius:10px;padding:0 10px}.stock-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:8px;padding:7px 9px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;color:#374151;font-size:13px;font-weight:800;cursor:pointer}@media(max-width:520px){.stock-fields{grid-template-columns:1fr 1fr;gap:6px}.stock-fields input{height:38px;font-size:13px}}.stock-nav{border:0;background:#e5e7eb;color:#374151;padding:13px 5px;border-radius:13px;font-weight:800;font-size:15px}.stock-nav.active{background:#111827;color:#fff}.stock-page{display:none}.stock-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.stock-summary .info{padding:10px}.stock-summary .info span{font-size:18px}.stock-profit{font-weight:900}.stock-positive{color:#047857}.stock-negative{color:#b91c1c}@media(max-width:700px){.tabs{grid-template-columns:repeat(2,1fr)}.stock-summary{grid-template-columns:1fr 1fr}}
+.favorite-financial .info b{font-size:9px;margin-bottom:2px}.sold-page{display:none}.sold-back{margin-bottom:12px}.sold-btn{background:#047857;color:#fff;border:0;font-weight:850}.stock-btn{background:#047857;color:#fff;border:0;font-weight:850}.sold-btn{background:#e5e7eb;color:#374151;border:1px solid #cbd5e1}.status-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px;font-size:11px;font-weight:900;margin-left:6px;vertical-align:middle}.status-stock{background:#047857;color:#fff}.status-sold{background:#e5e7eb;color:#374151;border:1px solid #cbd5e1}.stock-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.stock-fields label{font-size:11px;margin:3px 0 4px}.stock-fields input{height:40px;font-size:14px;border-radius:10px;padding:0 10px}.progress-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.progress-fields label{font-size:11px;margin:3px 0 4px}.progress-fields input{height:40px;font-size:14px;border-radius:10px;padding:0 10px}.progress-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:8px;padding:7px 9px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;color:#374151;font-size:13px;font-weight:800;cursor:pointer}@media(max-width:520px){.progress-fields{grid-template-columns:1fr 1fr;gap:6px}.progress-fields input{height:38px;font-size:13px}}.stock-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:8px;padding:7px 9px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;color:#374151;font-size:13px;font-weight:800;cursor:pointer}@media(max-width:520px){.stock-fields{grid-template-columns:1fr 1fr;gap:6px}.stock-fields input{height:38px;font-size:13px}}.stock-nav{border:0;background:#e5e7eb;color:#374151;padding:13px 5px;border-radius:13px;font-weight:800;font-size:15px}.stock-nav.active{background:#111827;color:#fff}.stock-page{display:none}.stock-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.stock-summary .info{padding:10px}.stock-summary .info span{font-size:18px}.stock-profit{font-weight:900}.stock-positive{color:#047857}.stock-negative{color:#b91c1c}@media(max-width:700px){.tabs{grid-template-columns:repeat(2,1fr)}.stock-summary{grid-template-columns:1fr 1fr}}
 .pc-select{display:inline-flex;gap:4px;margin-left:6px;vertical-align:middle}
 .pc-select button{width:24px;height:24px;padding:0;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#64748b;font-size:11px;font-weight:900;cursor:pointer}
 .pc-select button.active{background:#111827;color:#fff;border-color:#111827}
@@ -800,16 +800,57 @@ function addToNegotiation(){
  renderNegotiations();
  alert("Veículo adicionado em Em andamento.");
 }
+function saveNegotiationField(i,field,value){
+ let n=getNegotiations();if(!n[i])return;
+ if(["purchaseValue","saleValue","extraCost","documentationCost","km"].includes(field)) value=value===""?"":Number(value);
+ if(field==="plate") value=String(value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,7);
+ n[i][field]=value;localStorage.setItem("fipeNegotiations",JSON.stringify(n));renderNegotiations();
+}
+function toggleNegotiationDetails(i){
+ let n=getNegotiations();if(!n[i])return;
+ n[i].detailsOpen=!n[i].detailsOpen;localStorage.setItem("fipeNegotiations",JSON.stringify(n));renderNegotiations();
+}
 function renderNegotiations(){
  const el=$("progressList");if(!el)return;
  const n=getNegotiations();
- el.innerHTML=n.length?n.map((x,i)=>`<div class="item">
-  <b>${esc(x.title)}</b>
-  <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}</div>
-  <div class="muted">Código FIPE: ${esc(x.code||"")}</div>
-  <div class="actions"><button class="secondary small-btn" onclick="consultNegotiation(${i})">🔎 Consultar novamente</button><button class="secondary small-btn" onclick="removeNegotiation(${i})">Remover</button></div>
- </div>`).join(""):'<span class="muted">Nenhum veículo em andamento.</span>';
+ el.innerHTML=n.length?n.map((x,i)=>{
+  const cost=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0);
+  const sale=Number(x.saleValue)||0;
+  const fipe=stockPriceValue(x);
+  const profit=(sale>0?sale:fipe)-cost;
+  const km=x.km?Number(x.km).toLocaleString("pt-BR")+" km":"";
+  const open=!!x.detailsOpen;
+  return `<div class="item">
+   <div style="display:flex;justify-content:space-between;gap:8px">
+    <div style="min-width:0"><b>${esc(x.title)}</b><span class="status-badge" style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa">🔄 Em andamento</span>
+     <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Venda: '+money(sale):''}${km?' • KM: '+esc(km):''}
+      <span class="pc-select"><button class="${x.pc==="P"?"active":""}" onclick="saveNegotiationField(${i},'pc','P')">P</button><button class="${x.pc==="C"?"active":""}" onclick="saveNegotiationField(${i},'pc','C')">C</button></span>
+     </div>
+     <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(cost)} • Lucro: <span class="${profit>=0?"stock-positive":"stock-negative"}">${money(profit)}</span></div>
+    </div>
+   </div>
+   <button class="progress-toggle" onclick="toggleNegotiationDetails(${i})">
+    <span>${open?"−":"＋"} ${open?"Ocultar dados do veículo":"Dados do veículo"}</span><span>${open?"⌃":"⌄"}</span>
+   </button>
+   ${open?`<div class="progress-fields">
+    <div><label>PLACA</label><input value="${esc(x.plate||"")}" maxlength="7" placeholder="ABC1D23" onchange="saveNegotiationField(${i},'plate',this.value)"></div>
+    <div><label>KM</label><input type="number" min="0" value="${x.km??""}" onchange="saveNegotiationField(${i},'km',this.value)"></div>
+    <div><label>DATA DE COMPRA</label><input type="date" value="${esc(x.purchaseDate||"")}" onchange="saveNegotiationField(${i},'purchaseDate',this.value)"></div>
+    <div><label>VALOR PAGO</label><input type="number" min="0" step="0.01" value="${x.purchaseValue??""}" onchange="saveNegotiationField(${i},'purchaseValue',this.value)"></div>
+    <div><label>DATA DE VENDA</label><input type="date" value="${esc(x.saleDate||"")}" onchange="saveNegotiationField(${i},'saleDate',this.value)"></div>
+    <div><label>VALOR DE VENDA</label><input type="number" min="0" step="0.01" value="${x.saleValue??""}" onchange="saveNegotiationField(${i},'saleValue',this.value)"></div>
+    <div><label>DOCUMENTAÇÃO / VISTORIA</label><input type="number" min="0" step="0.01" value="${x.documentationCost??""}" onchange="saveNegotiationField(${i},'documentationCost',this.value)"></div>
+    <div><label>CUSTOS EXTRA</label><input type="number" min="0" step="0.01" value="${x.extraCost??""}" onchange="saveNegotiationField(${i},'extraCost',this.value)"></div>
+   </div>
+   <div class="summary favorite-financial">
+    <div class="info"><b>LUCRO</b><span class="${profit>=0?"stock-positive":"stock-negative"}">${money(profit)}</span></div>
+    <div class="info"><b>MARGEM</b><span>${cost>0?(profit/cost*100).toFixed(2)+"%":"—"}</span></div>
+   </div>`:""}
+   <div class="actions"><button class="secondary small-btn" onclick="consultNegotiation(${i})">🔎 Consultar novamente</button><button class="secondary small-btn" onclick="removeNegotiation(${i})">Remover</button></div>
+  </div>`;
+ }).join(""):'<span class="muted">Nenhum veículo em andamento.</span>';
 }
+
 function openProgressPage(){
  document.querySelectorAll("main > .card").forEach(el=>{if(el.id!=="progressPage")el.style.display="none"});
  $("progressPage").style.display="block";$("progressNav").classList.add("active");renderNegotiations();
