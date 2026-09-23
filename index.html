@@ -562,16 +562,71 @@ function toggleFavorite(q=currentQuote){
  localStorage.setItem("fipeFavorites",JSON.stringify(f));
  updateFavoriteButton(); renderFavorites();
 }
+function saveFavoriteField(i,field,value){
+ let f=getFavorites();
+ if(!f[i])return;
+ if(field==="plate") value=String(value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,7);
+ if(field==="purchaseValue"||field==="saleValue") value=value===""?"":Number(value);
+ f[i][field]=value;
+ localStorage.setItem("fipeFavorites",JSON.stringify(f));
+ renderFavorites();
+ updateFavoriteButton();
+}
+function favoriteFinancialResult(x){
+ const paid=Number(x.purchaseValue)||0;
+ const sold=Number(x.saleValue)||0;
+ if(!paid||!sold) return {text:paid&&!sold?"Venda ainda não informada":"Informe valor pago e valor de venda",pct:null,cls:""};
+ const result=sold-paid;
+ const pct=(result/paid)*100;
+ return {
+   text:(result>=0?"+":"-")+Math.abs(result).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}),
+   pct,
+   cls:result>=0?"positive":"negative"
+ };
+}
 function renderFavorites(){
  const f=getFavorites();
  if(!f.length){$("favorites").innerHTML='<span class="muted">Nenhum veículo favorito ainda.</span>';return}
- $("favorites").innerHTML=f.map((x,i)=>`<div class="item">
+ $("favorites").innerHTML=f.map((x,i)=>{
+  const r=favoriteFinancialResult(x);
+  return `<div class="item">
   <div style="display:flex;justify-content:space-between;gap:8px">
    <div><b>${esc(x.title)}</b><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • ${esc(x.price||"")}</div><div class="muted">FIPE: ${esc(x.code||"")}</div></div>
    <button class="favorite-btn" title="Remover" onclick="removeFavorite(${i})">★</button>
   </div>
+
+  <div class="grid" style="margin-top:10px">
+   <div>
+    <label>PLACA</label>
+    <input value="${esc(x.plate||"")}" maxlength="7" placeholder="ABC1D23" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,7)" onchange="saveFavoriteField(${i},'plate',this.value)">
+   </div>
+   <div>
+    <label>VALOR PAGO</label>
+    <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.purchaseValue??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'purchaseValue',this.value)">
+   </div>
+   <div>
+    <label>DATA DE COMPRA</label>
+    <input type="date" value="${esc(x.purchaseDate||"")}" onchange="saveFavoriteField(${i},'purchaseDate',this.value)">
+   </div>
+   <div>
+    <label>VALOR DE VENDA</label>
+    <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.saleValue??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'saleValue',this.value)">
+   </div>
+   <div>
+    <label>DATA DE VENDA</label>
+    <input type="date" value="${esc(x.saleDate||"")}" onchange="saveFavoriteField(${i},'saleDate',this.value)">
+   </div>
+  </div>
+
+  <div class="summary" style="margin-top:10px">
+   <div class="info"><b>LUCRO / PREJUÍZO</b><span class="${r.cls}">${r.text}</span></div>
+   <div class="info"><b>RESULTADO (%)</b><span class="${r.cls}">${r.pct==null?"—":(r.pct>=0?"+":"")+r.pct.toFixed(2)+"%"}</span></div>
+   <div class="info"><b>PLACA</b><span>${esc(x.plate||"—")}</span></div>
+  </div>
+
   <div class="actions"><button class="secondary small-btn" onclick="consultFavorite(${i})">Consultar novamente</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
- </div>`).join("");
+ </div>`;
+ }).join("");
 }
 function removeFavorite(i){
  let f=getFavorites(); f.splice(i,1); localStorage.setItem("fipeFavorites",JSON.stringify(f)); renderFavorites(); updateFavoriteButton();
