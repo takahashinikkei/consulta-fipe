@@ -64,7 +64,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 .favorite-fields input{height:40px;font-size:14px;border-radius:10px;padding:0 10px}
 .favorite-financial{margin-top:8px}
 .favorite-financial .info{padding:8px 10px;font-size:12px}
-.favorite-financial .info b{font-size:9px;margin-bottom:2px}.sold-page{display:none}.sold-back{margin-bottom:12px}.sold-btn{background:#047857;color:#fff;border:0;font-weight:850}.stock-btn{background:#047857;color:#fff;border:0;font-weight:850}.sold-btn{background:#e5e7eb;color:#374151;border:1px solid #cbd5e1}
+.favorite-financial .info b{font-size:9px;margin-bottom:2px}.sold-page{display:none}.sold-back{margin-bottom:12px}.sold-btn{background:#047857;color:#fff;border:0;font-weight:850}.stock-btn{background:#047857;color:#fff;border:0;font-weight:850}.sold-btn{background:#e5e7eb;color:#374151;border:1px solid #cbd5e1}.status-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px;font-size:11px;font-weight:900;margin-left:6px;vertical-align:middle}.status-stock{background:#047857;color:#fff}.status-sold{background:#e5e7eb;color:#374151;border:1px solid #cbd5e1}
 .pc-select{display:inline-flex;gap:4px;margin-left:6px;vertical-align:middle}
 .pc-select button{width:24px;height:24px;padding:0;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#64748b;font-size:11px;font-weight:900;cursor:pointer}
 .pc-select button.active{background:#111827;color:#fff;border-color:#111827}
@@ -636,7 +636,7 @@ function renderFavorites(){
   const open=!!x.detailsOpen;
   return `<div class="item">
   <div style="display:flex;justify-content:space-between;gap:8px">
-   <div style="min-width:0"><b>${esc(x.title)}</b>
+   <div style="min-width:0"><b>${esc(x.title)}</b><span class="status-badge status-stock">✓ Em estoque</span>
     <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} •
       <span>${esc(x.price||"")}
        <span class="pc-select" title="Classificação">
@@ -687,7 +687,7 @@ function renderFavorites(){
    <div class="info"><b>RESULTADO (%)</b><span class="${r.cls}">${r.pct==null?"—":(r.pct>=0?"+":"")+r.pct.toFixed(2)+"%"}</span></div>
   </div>`:""}
 
-  <div class="actions"><button class="stock-btn small-btn">✓ Em estoque</button><button class="sold-btn small-btn" onclick="moveToSold(${i})">✓ Vendido</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
+  <div class="actions"><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\u003c")})">Compartilhar</button></div>
  </div>`;
  }).join("");
 }
@@ -717,7 +717,7 @@ function renderSold(){
  const s=getSold();
  if(!s.length){$("soldList").innerHTML='<span class="muted">Nenhum veículo vendido ainda.</span>';return}
  $("soldList").innerHTML=s.map((x,i)=>`<div class="item">
-  <div><b>${esc(x.title)}</b><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.code||"")}</div>
+  <div><b>${esc(x.title)}</b><span class="status-badge status-sold">✓ Vendido</span><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.code||"")}</div>
   <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Venda: ${x.saleValue?money(Number(x.saleValue)):"—"}${x.saleDate?" • "+esc(x.saleDate):""}${x.extraCost?" • Custos: "+money(Number(x.extraCost)):""}</div></div>
   <div class="summary favorite-financial">
    <div class="info"><b>LUCRO / PREJUÍZO</b><span class="${favoriteFinancialResult(x).cls}">${favoriteFinancialResult(x).text}</span></div>
