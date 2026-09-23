@@ -739,30 +739,33 @@ function renderStock(){
  let fipe=0,cost=0;
  f.forEach(x=>{fipe+=stockPriceValue(x);cost+=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0)});
  const profit=fipe-cost, margin=cost>0?(profit/cost)*100:0;
- $("stockFipeTotal").textContent=money(fipe);
- $("stockCostTotal").textContent=money(cost);
- $("stockProfitTotal").textContent=money(profit);
- $("stockProfitTotal").className="stock-profit "+(profit>=0?"stock-positive":"stock-negative");
+ $("stockFipeTotal").textContent=money(fipe); $("stockCostTotal").textContent=money(cost);
+ $("stockProfitTotal").textContent=money(profit); $("stockProfitTotal").className="stock-profit "+(profit>=0?"stock-positive":"stock-negative");
  $("stockMarginTotal").textContent=(margin>=0?"+":"")+margin.toFixed(2)+"%";
  $("stockList").innerHTML=f.length?f.map((x,i)=>{
    const costItem=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0);
-   const pv=stockPriceValue(x);
-   const sale=Number(x.saleValue)||0;
-   const p=(sale>0?sale:pv)-costItem;
-   const open=!!x.stockDetailsOpen;
+   const pv=stockPriceValue(x), sale=Number(x.saleValue)||0, p=(sale>0?sale:pv)-costItem;
    const km=x.km?Number(x.km).toLocaleString("pt-BR")+" km":"";
    return `<div class="item">
     <div style="display:flex;justify-content:space-between;gap:8px">
      <div style="min-width:0"><b>${esc(x.title)}</b><span class="status-badge status-stock">✓ Em estoque</span>
-      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}
-       ${sale>0?' • Venda: '+money(sale):''}${km?' • KM: '+esc(km):''}
-       <span class="pc-select" title="Classificação">
-        <button class="${x.pc==="P"?"active":""}" onclick="setFavoritePC(${i},'P')">P</button>
-        <button class="${x.pc==="C"?"active":""}" onclick="setFavoritePC(${i},'C')">C</button>
-       </span>
+      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Venda: '+money(sale):''}${km?' • KM: '+esc(km):''}
+       <span class="pc-select"><button class="${x.pc==="P"?"active":""}" onclick="setFavoritePC(${i},'P')">P</button><button class="${x.pc==="C"?"active":""}" onclick="setFavoritePC(${i},'C')">C</button></span>
       </div>
       <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)} • Lucro: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
      </div>
+    </div>
+    <div class="stock-details-extra" style="display:none;margin-top:8px">
+      <div class="stock-fields">
+       <div><label>PLACA</label><input value="${esc(x.plate||"")}" maxlength="7" placeholder="ABC1D23" onchange="saveFavoriteField(${i},'plate',this.value)"></div>
+       <div><label>KM</label><input type="number" min="0" value="${x.km??""}" onchange="saveFavoriteField(${i},'km',this.value)"></div>
+       <div><label>DATA DE COMPRA</label><input type="date" value="${esc(x.purchaseDate||"")}" onchange="saveFavoriteField(${i},'purchaseDate',this.value)"></div>
+       <div><label>VALOR PAGO</label><input type="number" min="0" step="0.01" value="${x.purchaseValue??""}" onchange="saveFavoriteField(${i},'purchaseValue',this.value)"></div>
+       <div><label>DATA DE VENDA</label><input type="date" value="${esc(x.saleDate||"")}" onchange="saveFavoriteField(${i},'saleDate',this.value)"></div>
+       <div><label>VALOR DE VENDA</label><input type="number" min="0" step="0.01" value="${x.saleValue??""}" onchange="saveFavoriteField(${i},'saleValue',this.value)"></div>
+       <div><label>DOCUMENTAÇÃO / VISTORIA</label><input type="number" min="0" step="0.01" value="${x.documentationCost??""}" onchange="saveFavoriteField(${i},'documentationCost',this.value)"></div>
+       <div><label>CUSTOS EXTRA</label><input type="number" min="0" step="0.01" value="${x.extraCost??""}" onchange="saveFavoriteField(${i},'extraCost',this.value)"></div>
+      </div>
     </div>
    </div>`;
  }).join(""):'<span class="muted">Nenhum veículo em estoque.</span>';
@@ -775,11 +778,10 @@ function openStockPage(){
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function toggleStockDetailsPage(){
- const btn=$("stockExpandBtn");
- const list=$("stockList");
- if(!btn||!list)return;
- const hidden=list.classList.toggle("stock-compact");
- btn.textContent=hidden?"＋":"−";
+ const extras=document.querySelectorAll("#stockList .stock-details-extra");
+ const hidden=extras.length ? extras[0].style.display==="none" : true;
+ extras.forEach(el=>el.style.display=hidden?"block":"none");
+ const btn=$("stockExpandBtn"); if(btn)btn.textContent=hidden?"−":"＋";
 }
 function closeStockPage(){
  $("stockPage").style.display="none";
