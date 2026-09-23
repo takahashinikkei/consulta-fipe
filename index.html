@@ -131,6 +131,14 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
  <div id="error" class="error"></div>
 </div>
 
+<div class="card stock-page" id="progressPage">
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+  <h3 style="margin:0">🔄 Em andamento</h3>
+  <button class="secondary small-btn" onclick="closeProgressPage()">← Voltar</button>
+ </div>
+ <div id="progressList" style="margin-top:10px"><span class="muted">Nenhum veículo em andamento.</span></div>
+</div>
+
 <div class="card stock-page" id="stockPage">
  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
   <h3 style="margin:0">📦 Estoque de veículos</h3>
@@ -158,6 +166,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
  </div>
  <div class="actions">
   <button class="gold" id="favoriteBtn">☆ Adicionar ao estoque</button>
+  <button class="secondary" id="negotiateBtn" onclick="addToNegotiation()">🤝 Negociar</button>
   <button class="secondary" id="shareBtn">↗ Compartilhar cotação</button>
  </div>
 </div>
@@ -811,6 +820,44 @@ function closeStockPage(){
  $("favoritesCard").style.display="none";
  window.scrollTo({top:0,behavior:"smooth"});
 }
+function getNegotiations(){return JSON.parse(localStorage.getItem("fipeNegotiations")||"[]")}
+function addToNegotiation(){
+ if(!currentQuote)return;
+ let n=getNegotiations();
+ const item={...currentQuote,negotiationAt:new Date().toISOString()};
+ n=[item,...n.filter(v=>quoteKey(v)!==quoteKey(item))].slice(0,100);
+ localStorage.setItem("fipeNegotiations",JSON.stringify(n));
+ renderNegotiations();
+ alert("Veículo adicionado em Em andamento.");
+}
+function renderNegotiations(){
+ const el=$("progressList");if(!el)return;
+ const n=getNegotiations();
+ el.innerHTML=n.length?n.map((x,i)=>`<div class="item">
+  <b>${esc(x.title)}</b>
+  <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}</div>
+  <div class="muted">Código FIPE: ${esc(x.code||"")}</div>
+  <div class="actions"><button class="secondary small-btn" onclick="consultNegotiation(${i})">🔎 Consultar novamente</button><button class="secondary small-btn" onclick="removeNegotiation(${i})">Remover</button></div>
+ </div>`).join(""):'<span class="muted">Nenhum veículo em andamento.</span>';
+}
+function openProgressPage(){
+ document.querySelectorAll("main > .card").forEach(el=>{if(el.id!=="progressPage")el.style.display="none"});
+ $("progressPage").style.display="block";$("progressNav").classList.add("active");renderNegotiations();
+ $("progressPage").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function closeProgressPage(){
+ $("progressPage").style.display="none";$("progressNav").classList.remove("active");
+ document.querySelectorAll("main > .card").forEach(el=>{if(el.id!=="progressPage")el.style.display=""});
+ $("favoritesCard").style.display="none";window.scrollTo({top:0,behavior:"smooth"});
+}
+function consultNegotiation(i){
+ const q=getNegotiations()[i];if(!q)return;
+ currentQuote=q;$("result").style.display="block";
+ $("ref").textContent="Referência: "+(q.ref||"—");$("price").textContent=q.price||"—";$("title").textContent=q.title||"";
+ $("rbrand").textContent=q.brand||"—";$("ryear").textContent=q.year||"—";$("rfuel").textContent=q.fuel||"—";$("rcode").textContent=q.code||"—";
+ $("historyCard").style.display="none";closeProgressPage();$("result").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function removeNegotiation(i){let n=getNegotiations();n.splice(i,1);localStorage.setItem("fipeNegotiations",JSON.stringify(n));renderNegotiations()}
 function getSold(){return JSON.parse(localStorage.getItem("fipeSold")||"[]")}
 function openSoldPage(){
  document.querySelectorAll("main > .card").forEach(el=>{if(el.id!=="soldPage")el.style.display="none"});
@@ -918,6 +965,7 @@ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
  loadBrands();
 });
 $("stockNav").onclick=()=>openStockPage();
+$("progressNav").onclick=()=>openProgressPage();
 $("soldNav").onclick=()=>openSoldPage();
 $("reference").onchange=async()=>{
  referenceCode=$("reference").value;
