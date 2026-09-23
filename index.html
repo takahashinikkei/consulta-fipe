@@ -605,7 +605,7 @@ function saveFavoriteField(i,field,value){
  let f=getFavorites();
  if(!f[i])return;
  if(field==="plate") value=String(value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,7);
- if(field==="purchaseValue"||field==="saleValue"||field==="extraCost") value=value===""?"":Number(value);
+ if(field==="purchaseValue"||field==="saleValue"||field==="extraCost"||field==="documentationCost"||field==="km") value=value===""?"":Number(value);
  f[i][field]=value;
  f[i].detailsOpen=true;
  localStorage.setItem("fipeFavorites",JSON.stringify(f));
@@ -624,14 +624,11 @@ function favoriteFinancialResult(x){
  const paid=Number(x.purchaseValue)||0;
  const sold=Number(x.saleValue)||0;
  const extra=Number(x.extraCost)||0;
+ const doc=Number(x.documentationCost)||0;
  if(!paid||!sold) return {text:paid&&!sold?"Venda ainda não informada":"Informe valor pago e valor de venda",pct:null,cls:""};
- const result=sold-paid-extra;
+ const result=sold-paid-extra-doc;
  const pct=(result/paid)*100;
- return {
-   text:(result>=0?"+":"-")+Math.abs(result).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}),
-   pct,
-   cls:result>=0?"positive":"negative"
- };
+ return {text:(result>=0?"+":"-")+Math.abs(result).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}),pct,cls:result>=0?"positive":"negative"};
 }
 function favoriteSaleLabel(x){
  const sold=Number(x.saleValue);
@@ -709,7 +706,7 @@ function renderFavorites(){
 function stockTotals(){
  const f=getFavorites();
  let fipe=0,cost=0;
- f.forEach(x=>{fipe+=Number(x.priceValue)||0;cost+=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)});
+ f.forEach(x=>{fipe+=Number(x.priceValue)||0;cost+=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0)});
  const profit=fipe-cost;
  const margin=cost>0?(profit/cost)*100:0;
  return {fipe,cost,profit,margin};
@@ -727,7 +724,7 @@ function toggleStockDetails(i){
 function renderStock(){
  const f=getFavorites();
  let fipe=0,cost=0;
- f.forEach(x=>{fipe+=stockPriceValue(x);cost+=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)});
+ f.forEach(x=>{fipe+=stockPriceValue(x);cost+=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0)});
  const profit=fipe-cost, margin=cost>0?(profit/cost)*100:0;
  $("stockFipeTotal").textContent=money(fipe);
  $("stockCostTotal").textContent=money(cost);
@@ -735,23 +732,23 @@ function renderStock(){
  $("stockProfitTotal").className="stock-profit "+(profit>=0?"stock-positive":"stock-negative");
  $("stockMarginTotal").textContent=(margin>=0?"+":"")+margin.toFixed(2)+"%";
  $("stockList").innerHTML=f.length?f.map((x,i)=>{
-   const costItem=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0);
+   const costItem=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0);
    const pv=stockPriceValue(x);
-   const p=pv-costItem;
+   const sale=Number(x.saleValue)||0;
+   const baseValue=sale>0?sale:pv;
+   const p=baseValue-costItem;
    const open=!!x.stockDetailsOpen;
    return `<div class="item">
     <div style="display:flex;justify-content:space-between;gap:8px">
      <div style="min-width:0"><b>${esc(x.title)}</b><span class="status-badge status-stock">✓ Em estoque</span>
-      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}</div>
-      <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)} • Lucro projetado: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
+      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Venda: '+money(sale):''}</div>
+      <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)} • Lucro: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
      </div>
     </div>
-
     <button class="stock-toggle" onclick="toggleStockDetails(${i})">
       <span>${open?"−":"＋"} ${open?"Ocultar dados do veículo":"Dados do veículo"}</span>
       <span>${open?"⌃":"⌄"}</span>
     </button>
-
     ${open?`<div class="stock-fields">
       <div>
        <label>PLACA</label>
@@ -774,14 +771,21 @@ function renderStock(){
        <input type="date" value="${esc(x.saleDate||"")}" onchange="saveFavoriteField(${i},'saleDate',this.value)">
       </div>
       <div>
-       <label>VALOR VENDIDO</label>
+       <label>KM</label>
+       <input type="number" min="0" step="1" inputmode="numeric" value="${x.km??""}" placeholder="0 km" onchange="saveFavoriteField(${i},'km',this.value)">
+      </div>
+      <div>
+       <label>DOCUMENTAÇÃO / VISTORIA</label>
+       <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.documentationCost??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'documentationCost',this.value)">
+      </div>
+      <div>
+       <label>VALOR DE VENDA</label>
        <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.saleValue??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'saleValue',this.value)">
       </div>
     </div>
-
     <div class="summary favorite-financial">
-      <div class="info"><b>LUCRO / PREJUÍZO PROJETADO</b><span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
-      <div class="info"><b>MARGEM PROJETADA</b><span>${costItem>0?(p/costItem*100).toFixed(2)+"%":"—"}</span></div>
+      <div class="info"><b>LUCRO</b><span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
+      <div class="info"><b>MARGEM</b><span>${costItem>0?(p/costItem*100).toFixed(2)+"%":"—"}</span></div>
     </div>`:""}
    </div>`;
  }).join(""):'<span class="muted">Nenhum veículo em estoque.</span>';
@@ -828,7 +832,7 @@ function renderSold(){
  if(!s.length){$("soldList").innerHTML='<span class="muted">Nenhum veículo vendido ainda.</span>';return}
  $("soldList").innerHTML=s.map((x,i)=>`<div class="item">
   <div><b>${esc(x.title)}</b><span class="status-badge status-sold">✓ Vendido</span><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.code||"")}</div>
-  <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Venda: ${x.saleValue?money(Number(x.saleValue)):"—"}${x.saleDate?" • "+esc(x.saleDate):""}${x.extraCost?" • Custos: "+money(Number(x.extraCost)):""}</div></div>
+  <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}${x.km?"KM: "+Number(x.km).toLocaleString("pt-BR")+" • ":""}Venda: ${x.saleValue?money(Number(x.saleValue)):"—"}${x.saleDate?" • "+esc(x.saleDate):""}${x.extraCost?" • Custos: "+money(Number(x.extraCost)):""}${x.documentationCost?" • Doc/Vistoria: "+money(Number(x.documentationCost)):""}</div></div>
   <div class="summary favorite-financial">
    <div class="info"><b>LUCRO / PREJUÍZO</b><span class="${favoriteFinancialResult(x).cls}">${favoriteFinancialResult(x).text}</span></div>
    <div class="info"><b>RESULTADO (%)</b><span class="${favoriteFinancialResult(x).cls}">${favoriteFinancialResult(x).pct==null?"—":(favoriteFinancialResult(x).pct>=0?"+":"")+favoriteFinancialResult(x).pct.toFixed(2)+"%"}</span></div>
