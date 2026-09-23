@@ -688,8 +688,25 @@ function renderConsults(){
  let h=JSON.parse(localStorage.getItem("fipeConsults")||"[]");
  $("consultHistory").innerHTML=h.length?h.map((x,i)=>`<div class="item">
   <div style="display:flex;justify-content:space-between;gap:8px"><div><b>${esc(x.title)}</b><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • ${esc(x.price||"")}</div><div class="muted">${new Date(x.at).toLocaleString("pt-BR")} • FIPE: ${esc(x.code||"")}</div></div><button class="favorite-btn" title="Favoritar" onclick="toggleHistoryFavorite(${i})">${isFavorite(x)?"★":"☆"}</button></div>
-  <div class="actions"><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
+  <div class="actions"><button class="secondary small-btn" onclick="consultHistory(${i})">🔎 Consultar novamente</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
  </div>`).join(""):'<span class="muted">Nenhuma consulta ainda.</span>';
+}
+function consultHistory(i){
+ const h=JSON.parse(localStorage.getItem("fipeConsults")||"[]");
+ const q=h[i];
+ if(!q)return;
+ currentQuote=q;
+ $("result").style.display="block";
+ $("ref").textContent="Referência: "+(q.ref||"—");
+ $("price").textContent=q.price||"—";
+ $("title").textContent=q.title||"";
+ $("rbrand").textContent=q.brand||"—";
+ $("ryear").textContent=q.year||"—";
+ $("rfuel").textContent=q.fuel||"—";
+ $("rcode").textContent=q.code||"—";
+ $("historyCard").style.display="none";
+ updateFavoriteButton();
+ $("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
 function toggleHistoryFavorite(i){
  const h=JSON.parse(localStorage.getItem("fipeConsults")||"[]"); if(h[i]) toggleFavorite(h[i]);
