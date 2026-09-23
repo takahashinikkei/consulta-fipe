@@ -57,6 +57,15 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 .empty{padding:10px 0}
 .favorite-btn{border:0;background:transparent;font-size:22px;padding:0 0 0 8px;width:auto;height:auto}
 .small-btn{width:auto!important;height:38px!important;padding:0 10px!important;font-size:13px!important}
+.favorite-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;padding:8px 10px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;color:#374151;font-size:13px;font-weight:800;cursor:pointer}
+.favorite-toggle .arrow{font-size:18px;line-height:1}
+.favorite-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.favorite-fields label{font-size:11px;margin:3px 0 4px}
+.favorite-fields input{height:40px;font-size:14px;border-radius:10px;padding:0 10px}
+.favorite-financial{margin-top:8px}
+.favorite-financial .info{padding:8px 10px;font-size:12px}
+.favorite-financial .info b{font-size:9px;margin-bottom:2px}
+@media(max-width:520px){.favorite-fields{grid-template-columns:1fr 1fr;gap:6px}.favorite-fields input{height:38px;font-size:13px}.favorite-toggle{padding:7px 9px}}
 
 @media(max-width:520px){.row,.grid{grid-template-columns:1fr}.price{font-size:32px}.tabs button{font-size:14px}}
 .required{color:#b91c1c}.filter-note{margin-top:10px;background:#f8fafc;padding:10px 12px;border-radius:12px;color:#475569;font-size:13px;line-height:1.45}\n
@@ -568,9 +577,17 @@ function saveFavoriteField(i,field,value){
  if(field==="plate") value=String(value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,7);
  if(field==="purchaseValue"||field==="saleValue") value=value===""?"":Number(value);
  f[i][field]=value;
+ f[i].detailsOpen=true;
  localStorage.setItem("fipeFavorites",JSON.stringify(f));
  renderFavorites();
  updateFavoriteButton();
+}
+function toggleFavoriteDetails(i){
+ let f=getFavorites();
+ if(!f[i])return;
+ f[i].detailsOpen=!f[i].detailsOpen;
+ localStorage.setItem("fipeFavorites",JSON.stringify(f));
+ renderFavorites();
 }
 function favoriteFinancialResult(x){
  const paid=Number(x.purchaseValue)||0;
@@ -584,18 +601,28 @@ function favoriteFinancialResult(x){
    cls:result>=0?"positive":"negative"
  };
 }
+function favoriteSaleLabel(x){
+ const sold=Number(x.saleValue);
+ return sold>0?" • Venda: "+sold.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}):"";
+}
 function renderFavorites(){
  const f=getFavorites();
  if(!f.length){$("favorites").innerHTML='<span class="muted">Nenhum veículo favorito ainda.</span>';return}
  $("favorites").innerHTML=f.map((x,i)=>{
   const r=favoriteFinancialResult(x);
+  const open=!!x.detailsOpen;
   return `<div class="item">
   <div style="display:flex;justify-content:space-between;gap:8px">
-   <div><b>${esc(x.title)}</b><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • ${esc(x.price||"")}</div><div class="muted">FIPE: ${esc(x.code||"")}</div></div>
+   <div style="min-width:0"><b>${esc(x.title)}</b><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • ${esc(x.price||"")}</div><div class="muted">FIPE: ${esc(x.code||"")}${esc(favoriteSaleLabel(x))}</div></div>
    <button class="favorite-btn" title="Remover" onclick="removeFavorite(${i})">★</button>
   </div>
 
-  <div class="grid" style="margin-top:10px">
+  <button class="favorite-toggle" onclick="toggleFavoriteDetails(${i})">
+   <span>${open?"−":"＋"} ${open?"Ocultar dados do veículo":"Dados do veículo"}</span>
+   <span class="arrow">${open?"⌃":"⌄"}</span>
+  </button>
+
+  ${open?`<div class="favorite-fields">
    <div>
     <label>PLACA</label>
     <input value="${esc(x.plate||"")}" maxlength="7" placeholder="ABC1D23" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,7)" onchange="saveFavoriteField(${i},'plate',this.value)">
@@ -618,11 +645,10 @@ function renderFavorites(){
    </div>
   </div>
 
-  <div class="summary" style="margin-top:10px">
+  <div class="summary favorite-financial">
    <div class="info"><b>LUCRO / PREJUÍZO</b><span class="${r.cls}">${r.text}</span></div>
    <div class="info"><b>RESULTADO (%)</b><span class="${r.cls}">${r.pct==null?"—":(r.pct>=0?"+":"")+r.pct.toFixed(2)+"%"}</span></div>
-   <div class="info"><b>PLACA</b><span>${esc(x.plate||"—")}</span></div>
-  </div>
+  </div>`:""}
 
   <div class="actions"><button class="secondary small-btn" onclick="consultFavorite(${i})">Consultar novamente</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
  </div>`;
