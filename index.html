@@ -88,7 +88,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 .fixed-reference span{font-size:14px}
 .fixed-reference strong{font-size:15px;color:#a87912}
 
-.stock-compact .stock-details-extra{display:none}.stock-item-arrow{width:24px!important;height:24px!important;padding:0!important;border:1px solid #cbd5e1!important;border-radius:6px!important;background:#fff!important;color:#64748b!important;font-size:13px!important;font-weight:900!important;line-height:22px!important;cursor:pointer!important}.stock-item-sold{width:auto!important;height:28px!important;padding:0 9px!important;border:1px solid #cbd5e1!important;border-radius:7px!important;background:#f8fafc!important;color:#334155!important;font-size:11px!important;font-weight:700!important;cursor:pointer!important}.stock-item-sold:hover{background:#f1f5f9!important}</style>
+.stock-class-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.stock-class-summary .info{padding:10px}.stock-class-summary .info span{font-size:18px;font-weight:800}.stock-compact .stock-details-extra{display:none}.stock-item-sold{width:auto!important;height:28px!important;padding:0 9px!important;border:1px solid #cbd5e1!important;border-radius:7px!important;background:#f8fafc!important;color:#334155!important;font-size:11px!important;font-weight:700!important;cursor:pointer!important}.stock-item-sold:hover{background:#f1f5f9!important}</style>
 </head>
 <body>
 <header class="app-header">
@@ -142,7 +142,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 <div class="card stock-page" id="stockPage">
  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
   <h3 style="margin:0">📦 Estoque de veículos</h3>
-  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
    <button class="secondary small-btn" onclick="closeStockPage()">← Voltar</button>
    <button class="secondary small-btn" id="stockExpandBtn" onclick="toggleStockDetailsPage()">＋</button>
   </div>
@@ -153,6 +153,11 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
   <div class="info"><b>CUSTO TOTAL</b><span id="stockCostTotal">R$ 0</span></div>
   <div class="info"><b>LUCRO PROJETADO</b><span id="stockProfitTotal" class="stock-profit">R$ 0</span></div>
   <div class="info"><b>MARGEM PROJETADA</b><span id="stockMarginTotal">0,00%</span></div>
+ </div>
+ <div class="stock-class-summary">
+  <div class="info"><b>ESTOQUE P</b><span id="stockClassP">R$ 0</span></div>
+  <div class="info"><b>ESTOQUE C</b><span id="stockClassC">R$ 0</span></div>
+  <div class="info"><b>ESTOQUE A</b><span id="stockClassA">R$ 0</span></div>
  </div>
  <div class="muted" style="margin-top:8px">Projeção considerando a venda de todos os veículos pelo valor FIPE atual, descontando valor pago e custos extras cadastrados.</div>
 </div>
@@ -652,6 +657,7 @@ function setFavoritePC(i,value){
  f[i].pc=value;
  localStorage.setItem("fipeFavorites",JSON.stringify(f));
  renderFavorites();
+ if($("stockPage") && $("stockPage").style.display!=="none") renderStock();
 }
 function renderFavorites(){
  const f=getFavorites();
@@ -736,24 +742,33 @@ function toggleStockDetails(i){
 }
 function renderStock(){
  const f=getFavorites();
- let fipe=0,cost=0;
- f.forEach(x=>{fipe+=stockPriceValue(x);cost+=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0)});
+ let fipe=0,cost=0,classTotals={P:0,C:0,A:0};
+ f.forEach(x=>{
+  const pv=stockPriceValue(x);
+  fipe+=pv;
+  cost+=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0);
+  if(["P","C","A"].includes(x.pc)) classTotals[x.pc]+=pv;
+ });
  const profit=fipe-cost, margin=cost>0?(profit/cost)*100:0;
- $("stockFipeTotal").textContent=money(fipe); $("stockCostTotal").textContent=money(cost);
- $("stockProfitTotal").textContent=money(profit); $("stockProfitTotal").className="stock-profit "+(profit>=0?"stock-positive":"stock-negative");
+ $("stockFipeTotal").textContent=money(fipe);
+ $("stockCostTotal").textContent=money(cost);
+ $("stockProfitTotal").textContent=money(profit);
+ $("stockProfitTotal").className="stock-profit "+(profit>=0?"stock-positive":"stock-negative");
  $("stockMarginTotal").textContent=(margin>=0?"+":"")+margin.toFixed(2)+"%";
+ $("stockClassP").textContent=money(classTotals.P);
+ $("stockClassC").textContent=money(classTotals.C);
+ $("stockClassA").textContent=money(classTotals.A);
+
  $("stockList").innerHTML=f.length?f.map((x,i)=>{
    const costItem=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0);
    const pv=stockPriceValue(x), sale=Number(x.saleValue)||0, p=(sale>0?sale:pv)-costItem;
    const km=x.km?Number(x.km).toLocaleString("pt-BR")+" km":"";
-   const open=!!x.stockDetailsOpen;
    return `<div class="item">
     <div style="display:flex;justify-content:space-between;gap:8px">
      <div style="min-width:0">
       <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
        <b>${esc(x.title)}</b>
        <span class="status-badge status-stock">✓ Em estoque</span>
-       <button class="stock-item-arrow" title="${open?"Ocultar dados do veículo":"Mostrar dados do veículo"}" onclick="toggleStockDetails(${i})">${open?"⌃":"⌄"}</button>
        <button class="stock-item-sold" onclick="moveToSold(${i})">Vendido</button>
       </div>
       <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Venda: '+money(sale):''}${km?' • KM: '+esc(km):''}
@@ -762,7 +777,7 @@ function renderStock(){
       <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)} • Lucro: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
      </div>
     </div>
-    ${open?`<div class="stock-details-extra" style="margin-top:8px">
+    <div class="stock-details-extra" style="display:${stockDetailsExpanded?"block":"none"};margin-top:8px">
       <div class="stock-fields">
        <div><label>PLACA</label><input value="${esc(x.plate||"")}" maxlength="7" placeholder="ABC1D23" onchange="saveFavoriteField(${i},'plate',this.value)"></div>
        <div><label>KM</label><input type="number" min="0" value="${x.km??""}" onchange="saveFavoriteField(${i},'km',this.value)"></div>
@@ -773,7 +788,7 @@ function renderStock(){
        <div><label>DOCUMENTAÇÃO / VISTORIA</label><input type="number" min="0" step="0.01" value="${x.documentationCost??""}" onchange="saveFavoriteField(${i},'documentationCost',this.value)"></div>
        <div><label>CUSTOS EXTRA</label><input type="number" min="0" step="0.01" value="${x.extraCost??""}" onchange="saveFavoriteField(${i},'extraCost',this.value)"></div>
       </div>
-    </div>`:""}
+    </div>
    </div>`;
  }).join(""):'<span class="muted">Nenhum veículo em estoque.</span>';
 }
@@ -784,11 +799,12 @@ function openStockPage(){
  renderStock();
  window.scrollTo({top:0,behavior:"smooth"});
 }
+let stockDetailsExpanded=false;
 function toggleStockDetailsPage(){
- const extras=document.querySelectorAll("#stockList .stock-details-extra");
- const hidden=extras.length ? extras[0].style.display==="none" : true;
- extras.forEach(el=>el.style.display=hidden?"block":"none");
- const btn=$("stockExpandBtn"); if(btn)btn.textContent=hidden?"−":"＋";
+ stockDetailsExpanded=!stockDetailsExpanded;
+ const btn=$("stockExpandBtn");
+ if(btn) btn.textContent=stockDetailsExpanded?"−":"＋";
+ renderStock();
 }
 function closeStockPage(){
  $("stockPage").style.display="none";
