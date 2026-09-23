@@ -735,13 +735,19 @@ function renderStock(){
    const costItem=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0);
    const pv=stockPriceValue(x);
    const sale=Number(x.saleValue)||0;
-   const baseValue=sale>0?sale:pv;
-   const p=baseValue-costItem;
+   const p=(sale>0?sale:pv)-costItem;
    const open=!!x.stockDetailsOpen;
+   const km=x.km?Number(x.km).toLocaleString("pt-BR")+" km":"";
    return `<div class="item">
     <div style="display:flex;justify-content:space-between;gap:8px">
      <div style="min-width:0"><b>${esc(x.title)}</b><span class="status-badge status-stock">✓ Em estoque</span>
-      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Venda: '+money(sale):''}</div>
+      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}
+       ${sale>0?' • Venda: '+money(sale):''}${km?' • KM: '+esc(km):''}
+       <span class="pc-select" title="Classificação">
+        <button class="${x.pc==="P"?"active":""}" onclick="setFavoritePC(${i},'P')">P</button>
+        <button class="${x.pc==="C"?"active":""}" onclick="setFavoritePC(${i},'C')">C</button>
+       </span>
+      </div>
       <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)} • Lucro: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
      </div>
     </div>
@@ -755,8 +761,8 @@ function renderStock(){
        <input value="${esc(x.plate||"")}" maxlength="7" placeholder="ABC1D23" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,7)" onchange="saveFavoriteField(${i},'plate',this.value)">
       </div>
       <div>
-       <label>CUSTOS EXTRA</label>
-       <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.extraCost??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'extraCost',this.value)">
+       <label>KM</label>
+       <input type="number" min="0" step="1" inputmode="numeric" value="${x.km??""}" placeholder="0 km" onchange="saveFavoriteField(${i},'km',this.value)">
       </div>
       <div>
        <label>DATA DE COMPRA</label>
@@ -771,16 +777,16 @@ function renderStock(){
        <input type="date" value="${esc(x.saleDate||"")}" onchange="saveFavoriteField(${i},'saleDate',this.value)">
       </div>
       <div>
-       <label>KM</label>
-       <input type="number" min="0" step="1" inputmode="numeric" value="${x.km??""}" placeholder="0 km" onchange="saveFavoriteField(${i},'km',this.value)">
+       <label>VALOR DE VENDA</label>
+       <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.saleValue??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'saleValue',this.value)">
       </div>
       <div>
        <label>DOCUMENTAÇÃO / VISTORIA</label>
        <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.documentationCost??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'documentationCost',this.value)">
       </div>
       <div>
-       <label>VALOR DE VENDA</label>
-       <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.saleValue??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'saleValue',this.value)">
+       <label>CUSTOS EXTRA</label>
+       <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.extraCost??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'extraCost',this.value)">
       </div>
     </div>
     <div class="summary favorite-financial">
