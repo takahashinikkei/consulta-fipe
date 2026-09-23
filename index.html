@@ -591,7 +591,7 @@ function saveFavoriteField(i,field,value){
  let f=getFavorites();
  if(!f[i])return;
  if(field==="plate") value=String(value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,7);
- if(field==="purchaseValue"||field==="saleValue") value=value===""?"":Number(value);
+ if(field==="purchaseValue"||field==="saleValue"||field==="extraCost") value=value===""?"":Number(value);
  f[i][field]=value;
  f[i].detailsOpen=true;
  localStorage.setItem("fipeFavorites",JSON.stringify(f));
@@ -608,8 +608,9 @@ function toggleFavoriteDetails(i){
 function favoriteFinancialResult(x){
  const paid=Number(x.purchaseValue)||0;
  const sold=Number(x.saleValue)||0;
+ const extra=Number(x.extraCost)||0;
  if(!paid||!sold) return {text:paid&&!sold?"Venda ainda não informada":"Informe valor pago e valor de venda",pct:null,cls:""};
- const result=sold-paid;
+ const result=sold-paid-extra;
  const pct=(result/paid)*100;
  return {
    text:(result>=0?"+":"-")+Math.abs(result).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}),
@@ -635,12 +636,17 @@ function renderFavorites(){
   const open=!!x.detailsOpen;
   return `<div class="item">
   <div style="display:flex;justify-content:space-between;gap:8px">
-   <div style="min-width:0"><b>${esc(x.title)}</b><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • <span>${esc(x.price||"")}
-   <span class="pc-select" title="Classificação do veículo">
-    <button class="${x.pc==="P"?"active":""}" onclick="setFavoritePC(${i},'P')">P</button>
-    <button class="${x.pc==="C"?"active":""}" onclick="setFavoritePC(${i},'C')">C</button>
-   </span>
-  </span></div><div class="muted">FIPE: ${esc(x.code||"")}${esc(favoriteSaleLabel(x))}</div></div>
+   <div style="min-width:0"><b>${esc(x.title)}</b>
+    <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} •
+      <span>${esc(x.price||"")}
+       <span class="pc-select" title="Classificação">
+        <button class="${x.pc==="P"?"active":""}" onclick="setFavoritePC(${i},'P')">P</button>
+        <button class="${x.pc==="C"?"active":""}" onclick="setFavoritePC(${i},'C')">C</button>
+       </span>
+      </span>
+    </div>
+    <div class="muted">FIPE: ${esc(x.code||"")}${esc(favoriteSaleLabel(x))}</div>
+   </div>
    <button class="favorite-btn" title="Remover" onclick="removeFavorite(${i})">★</button>
   </div>
 
@@ -655,20 +661,24 @@ function renderFavorites(){
     <input value="${esc(x.plate||"")}" maxlength="7" placeholder="ABC1D23" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,7)" onchange="saveFavoriteField(${i},'plate',this.value)">
    </div>
    <div>
-    <label>VALOR PAGO</label>
-    <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.purchaseValue??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'purchaseValue',this.value)">
+    <label>CUSTOS EXTRA</label>
+    <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.extraCost??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'extraCost',this.value)">
    </div>
    <div>
     <label>DATA DE COMPRA</label>
     <input type="date" value="${esc(x.purchaseDate||"")}" onchange="saveFavoriteField(${i},'purchaseDate',this.value)">
    </div>
    <div>
-    <label>VALOR DE VENDA</label>
-    <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.saleValue??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'saleValue',this.value)">
+    <label>VALOR PAGO</label>
+    <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.purchaseValue??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'purchaseValue',this.value)">
    </div>
    <div>
     <label>DATA DE VENDA</label>
     <input type="date" value="${esc(x.saleDate||"")}" onchange="saveFavoriteField(${i},'saleDate',this.value)">
+   </div>
+   <div>
+    <label>VALOR VENDIDO</label>
+    <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.saleValue??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'saleValue',this.value)">
    </div>
   </div>
 
@@ -708,7 +718,7 @@ function renderSold(){
  if(!s.length){$("soldList").innerHTML='<span class="muted">Nenhum veículo vendido ainda.</span>';return}
  $("soldList").innerHTML=s.map((x,i)=>`<div class="item">
   <div><b>${esc(x.title)}</b><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.code||"")}</div>
-  <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Venda: ${x.saleValue?money(Number(x.saleValue)):"—"}${x.saleDate?" • "+esc(x.saleDate):""}</div></div>
+  <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Venda: ${x.saleValue?money(Number(x.saleValue)):"—"}${x.saleDate?" • "+esc(x.saleDate):""}${x.extraCost?" • Custos: "+money(Number(x.extraCost)):""}</div></div>
   <div class="summary favorite-financial">
    <div class="info"><b>LUCRO / PREJUÍZO</b><span class="${favoriteFinancialResult(x).cls}">${favoriteFinancialResult(x).text}</span></div>
    <div class="info"><b>RESULTADO (%)</b><span class="${favoriteFinancialResult(x).cls}">${favoriteFinancialResult(x).pct==null?"—":(favoriteFinancialResult(x).pct>=0?"+":"")+favoriteFinancialResult(x).pct.toFixed(2)+"%"}</span></div>
@@ -826,7 +836,7 @@ renderConsults();renderFavorites();renderSold();$("clearSold").onclick=()=>{loca
 </script>
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=13").catch(()=>{}));
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=14").catch(()=>{}));
 }
 </script>
 
