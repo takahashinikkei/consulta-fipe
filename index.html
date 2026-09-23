@@ -65,6 +65,10 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 .favorite-financial{margin-top:8px}
 .favorite-financial .info{padding:8px 10px;font-size:12px}
 .favorite-financial .info b{font-size:9px;margin-bottom:2px}.sold-page{display:none}.sold-back{margin-bottom:12px}.sold-btn{background:#047857;color:#fff;border:0;font-weight:850}
+.pc-select{display:inline-flex;gap:4px;margin-left:6px;vertical-align:middle}
+.pc-select button{width:24px;height:24px;padding:0;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#64748b;font-size:11px;font-weight:900;cursor:pointer}
+.pc-select button.active{background:#111827;color:#fff;border-color:#111827}
+
 @media(max-width:520px){.favorite-fields{grid-template-columns:1fr 1fr;gap:6px}.favorite-fields input{height:38px;font-size:13px}.favorite-toggle{padding:7px 9px}}
 
 @media(max-width:520px){.row,.grid{grid-template-columns:1fr}.price{font-size:32px}.tabs button{font-size:14px}}
@@ -617,6 +621,12 @@ function favoriteSaleLabel(x){
  const sold=Number(x.saleValue);
  return sold>0?" • Venda: "+sold.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}):"";
 }
+function setFavoritePC(i,value){
+ let f=getFavorites(); if(!f[i])return;
+ f[i].pc=value;
+ localStorage.setItem("fipeFavorites",JSON.stringify(f));
+ renderFavorites();
+}
 function renderFavorites(){
  const f=getFavorites();
  if(!f.length){$("favorites").innerHTML='<span class="muted">Nenhum veículo favorito ainda.</span>';return}
@@ -625,7 +635,12 @@ function renderFavorites(){
   const open=!!x.detailsOpen;
   return `<div class="item">
   <div style="display:flex;justify-content:space-between;gap:8px">
-   <div style="min-width:0"><b>${esc(x.title)}</b><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • ${esc(x.price||"")}</div><div class="muted">FIPE: ${esc(x.code||"")}${esc(favoriteSaleLabel(x))}</div></div>
+   <div style="min-width:0"><b>${esc(x.title)}</b><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • <span>${esc(x.price||"")}
+   <span class="pc-select" title="Classificação do veículo">
+    <button class="${x.pc==="P"?"active":""}" onclick="setFavoritePC(${i},'P')">P</button>
+    <button class="${x.pc==="C"?"active":""}" onclick="setFavoritePC(${i},'C')">C</button>
+   </span>
+  </span></div><div class="muted">FIPE: ${esc(x.code||"")}${esc(favoriteSaleLabel(x))}</div></div>
    <button class="favorite-btn" title="Remover" onclick="removeFavorite(${i})">★</button>
   </div>
 
