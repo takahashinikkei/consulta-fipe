@@ -88,7 +88,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 .fixed-reference span{font-size:14px}
 .fixed-reference strong{font-size:15px;color:#a87912}
 
-.stock-page-header{position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding-right:0}.stock-page-controls{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:14px}.stock-page-controls #stockExpandBtn{margin-top:2px}.stock-page-header .small-btn{min-width:36px}.stock-class-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.stock-class-summary .info{padding:10px}.stock-class-summary .info span{font-size:18px;font-weight:800;display:block}.stock-class-summary .info small{display:block;margin-top:7px;font-size:10px;color:#64748b;font-weight:700}.stock-class-summary .info strong{display:block;margin-top:2px;font-size:16px}.stock-compact .stock-details-extra{display:none}.stock-item-sold{width:auto!important;height:28px!important;padding:0 9px!important;border:1px solid #cbd5e1!important;border-radius:7px!important;background:#f8fafc!important;color:#334155!important;font-size:11px!important;font-weight:700!important;cursor:pointer!important}.stock-item-sold:hover{background:#f1f5f9!important}</style>
+.stock-page-header{position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding-right:0}.stock-page-controls{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:14px}.stock-page-controls #stockExpandBtn{margin-top:2px}.stock-page-header .small-btn{min-width:36px}.stock-class-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.stock-class-summary .info{padding:10px}.stock-class-summary .info span{font-size:18px;font-weight:800;display:block}.stock-class-summary .info small{display:block;margin-top:7px;font-size:10px;color:#64748b;font-weight:700}.stock-class-summary .info strong{display:block;margin-top:2px;font-size:16px}.stock-compact .stock-details-extra{display:none}.vehicle-expand-btn{flex:0 0 36px!important;width:36px!important;height:36px!important;padding:0!important;border:1px solid #cbd5e1!important;border-radius:8px!important;background:#f8fafc!important;color:#334155!important;font-size:16px!important;font-weight:700!important;cursor:pointer!important;line-height:34px!important}.vehicle-expand-btn:hover{background:#f1f5f9!important}.stock-item-sold{width:auto!important;height:28px!important;padding:0 9px!important;border:1px solid #cbd5e1!important;border-radius:7px!important;background:#f8fafc!important;color:#334155!important;font-size:11px!important;font-weight:700!important;cursor:pointer!important}.stock-item-sold:hover{background:#f1f5f9!important}</style>
 </head>
 <body>
 <header class="app-header">
@@ -770,6 +770,7 @@ function renderStock(){
    const costItem=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0);
    const pv=stockPriceValue(x), sale=Number(x.saleValue)||0, p=(sale>0?sale:pv)-costItem;
    const km=x.km?Number(x.km).toLocaleString("pt-BR")+" km":"";
+   const itemOpen=!!x.stockItemDetailsOpen;
    return `<div class="item">
     <div style="display:flex;justify-content:space-between;gap:8px">
      <div style="min-width:0">
@@ -777,6 +778,7 @@ function renderStock(){
        <b>${esc(x.title)}</b>
        <span class="status-badge status-stock">✓ Em estoque</span>
        <button class="stock-item-sold" onclick="moveToSold(${i})">Vendido</button>
+       <button class="vehicle-expand-btn" title="${itemOpen?"Recolher":"Abrir dados"}" onclick="toggleStockItemDetails(${i})">${itemOpen?"−":"＋"}</button>
       </div>
       <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Venda: '+money(sale):''}${km?' • KM: '+esc(km):''}
        <span class="pc-select"><button class="${x.pc==="P"?"active":""}" onclick="setFavoritePC(${i},'P')">P</button><button class="${x.pc==="C"?"active":""}" onclick="setFavoritePC(${i},'C')">C</button><button class="${x.pc==="A"?"active":""}" onclick="setFavoritePC(${i},'A')">A</button></span>
@@ -784,7 +786,7 @@ function renderStock(){
       <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)} • Lucro: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
      </div>
     </div>
-    <div class="stock-details-extra" style="display:${stockDetailsExpanded?"block":"none"};margin-top:8px">
+    <div class="stock-details-extra" style="display:${(stockDetailsExpanded||itemOpen)?"block":"none"};margin-top:8px">
       <div class="stock-fields">
        <div><label>PLACA</label><input value="${esc(x.plate||"")}" maxlength="7" placeholder="ABC1D23" onchange="saveFavoriteField(${i},'plate',this.value)"></div>
        <div><label>KM</label><input type="number" min="0" value="${x.km??""}" onchange="saveFavoriteField(${i},'km',this.value)"></div>
@@ -798,6 +800,12 @@ function renderStock(){
     </div>
    </div>`;
  }).join(""):'<span class="muted">Nenhum veículo em estoque.</span>';
+}
+function toggleStockItemDetails(i){
+ let f=getFavorites(); if(!f[i])return;
+ f[i].stockItemDetailsOpen=!f[i].stockItemDetailsOpen;
+ localStorage.setItem("fipeFavorites",JSON.stringify(f));
+ renderStock();
 }
 function openStockPage(){
  document.querySelectorAll("main > .card").forEach(el=>{if(el.id!=="stockPage")el.style.display="none"});
@@ -858,10 +866,9 @@ function renderNegotiations(){
      </div>
      <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(cost)} • Lucro: <span class="${profit>=0?"stock-positive":"stock-negative"}">${money(profit)}</span></div>
     </div>
+    </div>
+    <button class="vehicle-expand-btn" title="${open?"Recolher":"Abrir dados"}" onclick="toggleNegotiationDetails(${i})">${open?"−":"＋"}</button>
    </div>
-   <button class="progress-toggle" onclick="toggleNegotiationDetails(${i})">
-    <span>${open?"−":"＋"} ${open?"Ocultar dados do veículo":"Dados do veículo"}</span><span>${open?"⌃":"⌄"}</span>
-   </button>
    ${open?`<div class="progress-fields">
     <div><label>PLACA</label><input value="${esc(x.plate||"")}" maxlength="7" placeholder="ABC1D23" onchange="saveNegotiationField(${i},'plate',this.value)"></div>
     <div><label>KM</label><input type="number" min="0" value="${x.km??""}" onchange="saveNegotiationField(${i},'km',this.value)"></div>
@@ -922,18 +929,57 @@ function moveToSold(i){
  localStorage.setItem("fipeFavorites",JSON.stringify(f));
  renderFavorites();renderSold();updateFavoriteButton();openSoldPage();
 }
+function toggleSoldDetails(i){
+ let s=getSold(); if(!s[i])return;
+ s[i].detailsOpen=!s[i].detailsOpen;
+ localStorage.setItem("fipeSold",JSON.stringify(s));
+ renderSold();
+}
 function renderSold(){
  const s=getSold();
  if(!s.length){$("soldList").innerHTML='<span class="muted">Nenhum veículo vendido ainda.</span>';return}
- $("soldList").innerHTML=s.map((x,i)=>`<div class="item">
-  <div><b>${esc(x.title)}</b><span class="status-badge status-sold">✓ Vendido</span><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.code||"")}</div>
-  <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}${x.km?"KM: "+Number(x.km).toLocaleString("pt-BR")+" • ":""}Venda: ${x.saleValue?money(Number(x.saleValue)):"—"}${x.saleDate?" • "+esc(x.saleDate):""}${x.extraCost?" • Custos: "+money(Number(x.extraCost)):""}${x.documentationCost?" • Doc/Vistoria: "+money(Number(x.documentationCost)):""}</div></div>
-  <div class="summary favorite-financial">
-   <div class="info"><b>LUCRO / PREJUÍZO</b><span class="${favoriteFinancialResult(x).cls}">${favoriteFinancialResult(x).text}</span></div>
-   <div class="info"><b>RESULTADO (%)</b><span class="${favoriteFinancialResult(x).cls}">${favoriteFinancialResult(x).pct==null?"—":(favoriteFinancialResult(x).pct>=0?"+":"")+favoriteFinancialResult(x).pct.toFixed(2)+"%"}</span></div>
-  </div>
-  <div class="actions"><button class="secondary small-btn" onclick="consultSold(${i})">🔎 Consultar novamente</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
- </div>`).join("");
+ $("soldList").innerHTML=s.map((x,i)=>{
+  const r=favoriteFinancialResult(x);
+  const open=!!x.detailsOpen;
+  const cost=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0);
+  const profit=(Number(x.saleValue)||0)-cost;
+  return `<div class="item">
+   <div style="display:flex;justify-content:space-between;gap:8px">
+    <div style="min-width:0">
+     <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+      <b>${esc(x.title)}</b><span class="status-badge status-sold">✓ Vendido</span>
+     </div>
+     <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${x.km?" • KM: "+Number(x.km).toLocaleString("pt-BR")+" km":""}</div>
+     <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Venda: ${x.saleValue?money(Number(x.saleValue)):"—"}${x.saleDate?" • "+esc(x.saleDate):""} • Lucro: <span class="${r.cls}">${r.text}</span></div>
+    </div>
+    <button class="vehicle-expand-btn" title="${open?"Recolher":"Abrir dados"}" onclick="toggleSoldDetails(${i})">${open?"−":"＋"}</button>
+   </div>
+   ${open?`<div class="sold-details-extra" style="margin-top:8px">
+    <div class="stock-fields">
+     <div><label>PLACA</label><input value="${esc(x.plate||"")}" maxlength="7" onchange="saveSoldField(${i},'plate',this.value)"></div>
+     <div><label>KM</label><input type="number" min="0" value="${x.km??""}" onchange="saveSoldField(${i},'km',this.value)"></div>
+     <div><label>DATA DE COMPRA</label><input type="date" value="${esc(x.purchaseDate||"")}" onchange="saveSoldField(${i},'purchaseDate',this.value)"></div>
+     <div><label>VALOR PAGO</label><input type="number" min="0" step="0.01" value="${x.purchaseValue??""}" onchange="saveSoldField(${i},'purchaseValue',this.value)"></div>
+     <div><label>DATA DE VENDA</label><input type="date" value="${esc(x.saleDate||"")}" onchange="saveSoldField(${i},'saleDate',this.value)"></div>
+     <div><label>VALOR DE VENDA</label><input type="number" min="0" step="0.01" value="${x.saleValue??""}" onchange="saveSoldField(${i},'saleValue',this.value)"></div>
+     <div><label>DOCUMENTAÇÃO / VISTORIA</label><input type="number" min="0" step="0.01" value="${x.documentationCost??""}" onchange="saveSoldField(${i},'documentationCost',this.value)"></div>
+     <div><label>CUSTOS EXTRA</label><input type="number" min="0" step="0.01" value="${x.extraCost??""}" onchange="saveSoldField(${i},'extraCost',this.value)"></div>
+    </div>
+    <div class="summary favorite-financial">
+     <div class="info"><b>LUCRO</b><span class="${r.cls}">${r.text}</span></div>
+     <div class="info"><b>RESULTADO (%)</b><span class="${r.cls}">${r.pct==null?"—":(r.pct>=0?"+":"")+r.pct.toFixed(2)+"%"}</span></div>
+    </div>
+   </div>`:""}
+   <div class="actions"><button class="secondary small-btn" onclick="consultSold(${i})">🔎 Consultar novamente</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
+  </div>`;
+ }).join("");
+}
+function saveSoldField(i,field,value){
+ let s=getSold(); if(!s[i])return;
+ if(["purchaseValue","saleValue","extraCost","documentationCost","km"].includes(field)) value=value===""?"":Number(value);
+ if(field==="plate") value=String(value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,7);
+ s[i][field]=value; s[i].detailsOpen=true;
+ localStorage.setItem("fipeSold",JSON.stringify(s)); renderSold();
 }
 function consultSold(i){
  const q=getSold()[i];if(!q)return;
