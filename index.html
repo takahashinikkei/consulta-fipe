@@ -64,7 +64,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 .favorite-fields input{height:40px;font-size:14px;border-radius:10px;padding:0 10px}
 .favorite-financial{margin-top:8px}
 .favorite-financial .info{padding:8px 10px;font-size:12px}
-.favorite-financial .info b{font-size:9px;margin-bottom:2px}
+.favorite-financial .info b{font-size:9px;margin-bottom:2px}.sold-page{display:none}.sold-back{margin-bottom:12px}.sold-btn{background:#047857;color:#fff;border:0;font-weight:850}
 @media(max-width:520px){.favorite-fields{grid-template-columns:1fr 1fr;gap:6px}.favorite-fields input{height:38px;font-size:13px}.favorite-toggle{padding:7px 9px}}
 
 @media(max-width:520px){.row,.grid{grid-template-columns:1fr}.price{font-size:32px}.tabs button{font-size:14px}}
@@ -143,9 +143,21 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 <div class="card">
  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
   <h3 style="margin:0">⭐ Meus veículos</h3>
-  <button class="secondary small-btn" id="clearFavorites">Limpar</button>
+  <div style="display:flex;gap:6px">
+   <button class="secondary small-btn" onclick="openSoldPage()">🚘 Vendidos</button>
+   <button class="secondary small-btn" id="clearFavorites">Limpar</button>
+  </div>
  </div>
  <div id="favorites"><span class="muted">Nenhum veículo favorito ainda.</span></div>
+</div>
+
+<div class="card sold-page" id="soldPage">
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+  <h3 style="margin:0">🚘 Veículos vendidos</h3>
+  <button class="secondary small-btn" onclick="closeSoldPage()">← Voltar</button>
+ </div>
+ <div id="soldList" style="margin-top:8px"><span class="muted">Nenhum veículo vendido ainda.</span></div>
+ <div class="actions"><button class="secondary small-btn" id="clearSold">Limpar vendidos</button></div>
 </div>
 
 <div class="card result" id="historyCard">
@@ -650,9 +662,51 @@ function renderFavorites(){
    <div class="info"><b>RESULTADO (%)</b><span class="${r.cls}">${r.pct==null?"—":(r.pct>=0?"+":"")+r.pct.toFixed(2)+"%"}</span></div>
   </div>`:""}
 
-  <div class="actions"><button class="secondary small-btn" onclick="consultFavorite(${i})">Consultar novamente</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
+  <div class="actions"><button class="sold-btn small-btn" onclick="moveToSold(${i})">✓ Vendido</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
  </div>`;
  }).join("");
+}
+function getSold(){return JSON.parse(localStorage.getItem("fipeSold")||"[]")}
+function openSoldPage(){
+ document.querySelectorAll("main > .card").forEach(el=>{if(el.id!=="soldPage")el.style.display="none"});
+ $("soldPage").style.display="block";
+ renderSold();
+ $("soldPage").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function closeSoldPage(){
+ $("soldPage").style.display="none";
+ document.querySelectorAll("main > .card").forEach(el=>{if(el.id!=="soldPage")el.style.display=""});
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function moveToSold(i){
+ let f=getFavorites(),x=f[i];
+ if(!x)return;
+ let sold=getSold();
+ sold=[{...x,soldAt:new Date().toISOString()},...sold.filter(v=>quoteKey(v)!==quoteKey(x))].slice(0,100);
+ f.splice(i,1);
+ localStorage.setItem("fipeSold",JSON.stringify(sold));
+ localStorage.setItem("fipeFavorites",JSON.stringify(f));
+ renderFavorites();renderSold();updateFavoriteButton();openSoldPage();
+}
+function renderSold(){
+ const s=getSold();
+ if(!s.length){$("soldList").innerHTML='<span class="muted">Nenhum veículo vendido ainda.</span>';return}
+ $("soldList").innerHTML=s.map((x,i)=>`<div class="item">
+  <div><b>${esc(x.title)}</b><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.code||"")}</div>
+  <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Venda: ${x.saleValue?money(Number(x.saleValue)):"—"}${x.saleDate?" • "+esc(x.saleDate):""}</div></div>
+  <div class="summary favorite-financial">
+   <div class="info"><b>LUCRO / PREJUÍZO</b><span class="${favoriteFinancialResult(x).cls}">${favoriteFinancialResult(x).text}</span></div>
+   <div class="info"><b>RESULTADO (%)</b><span class="${favoriteFinancialResult(x).cls}">${favoriteFinancialResult(x).pct==null?"—":(favoriteFinancialResult(x).pct>=0?"+":"")+favoriteFinancialResult(x).pct.toFixed(2)+"%"}</span></div>
+  </div>
+  <div class="actions"><button class="secondary small-btn" onclick="consultSold(${i})">🔎 Consultar novamente</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
+ </div>`).join("");
+}
+function consultSold(i){
+ const q=getSold()[i];if(!q)return;
+ currentQuote=q;$("result").style.display="block";
+ $("ref").textContent="Referência: "+(q.ref||"—");$("price").textContent=q.price||"—";$("title").textContent=q.title||"";
+ $("rbrand").textContent=q.brand||"—";$("ryear").textContent=q.year||"—";$("rfuel").textContent=q.fuel||"—";$("rcode").textContent=q.code||"—";
+ $("historyCard").style.display="none";closeSoldPage();updateFavoriteButton();$("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
 function removeFavorite(i){
  let f=getFavorites(); f.splice(i,1); localStorage.setItem("fipeFavorites",JSON.stringify(f)); renderFavorites(); updateFavoriteButton();
@@ -752,12 +806,12 @@ $("favoriteBtn").onclick=()=>toggleFavorite();
 $("shareBtn").onclick=()=>shareQuote();
 $("clearHistory").onclick=()=>{localStorage.removeItem("fipeConsults");renderConsults()};
 $("clearFavorites").onclick=()=>{localStorage.removeItem("fipeFavorites");renderFavorites();updateFavoriteButton()};
-renderConsults();renderFavorites();
+renderConsults();renderFavorites();renderSold();$("clearSold").onclick=()=>{localStorage.removeItem("fipeSold");renderSold()};
 (async()=>{await loadReferences(); await loadBrands()})();
 </script>
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=12").catch(()=>{}));
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=13").catch(()=>{}));
 }
 </script>
 
