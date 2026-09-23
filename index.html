@@ -88,7 +88,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 .fixed-reference span{font-size:14px}
 .fixed-reference strong{font-size:15px;color:#a87912}
 
-</style>
+.stock-compact .stock-details-extra{display:none}</style>
 </head>
 <body>
 <header class="app-header">
@@ -142,7 +142,10 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 <div class="card stock-page" id="stockPage">
  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
   <h3 style="margin:0">📦 Estoque de veículos</h3>
-  <button class="secondary small-btn" onclick="closeStockPage()">← Voltar</button>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+   <button class="secondary small-btn" onclick="closeStockPage()">← Voltar</button>
+   <button class="secondary small-btn" id="stockExpandBtn" onclick="toggleStockDetailsPage()">＋</button>
+  </div>
  </div>
  <div id="stockList" style="margin-top:10px"><span class="muted">Nenhum veículo em estoque.</span></div>
  <div class="stock-summary">
@@ -761,48 +764,6 @@ function renderStock(){
       <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)} • Lucro: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
      </div>
     </div>
-    <button class="stock-toggle" onclick="toggleStockDetails(${i})">
-      <span>${open?"−":"＋"} ${open?"Ocultar dados do veículo":"Dados do veículo"}</span>
-      <span>${open?"⌃":"⌄"}</span>
-    </button>
-    ${open?`<div class="stock-fields">
-      <div>
-       <label>PLACA</label>
-       <input value="${esc(x.plate||"")}" maxlength="7" placeholder="ABC1D23" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,7)" onchange="saveFavoriteField(${i},'plate',this.value)">
-      </div>
-      <div>
-       <label>KM</label>
-       <input type="number" min="0" step="1" inputmode="numeric" value="${x.km??""}" placeholder="0 km" onchange="saveFavoriteField(${i},'km',this.value)">
-      </div>
-      <div>
-       <label>DATA DE COMPRA</label>
-       <input type="date" value="${esc(x.purchaseDate||"")}" onchange="saveFavoriteField(${i},'purchaseDate',this.value)">
-      </div>
-      <div>
-       <label>VALOR PAGO</label>
-       <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.purchaseValue??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'purchaseValue',this.value)">
-      </div>
-      <div>
-       <label>DATA DE VENDA</label>
-       <input type="date" value="${esc(x.saleDate||"")}" onchange="saveFavoriteField(${i},'saleDate',this.value)">
-      </div>
-      <div>
-       <label>VALOR DE VENDA</label>
-       <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.saleValue??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'saleValue',this.value)">
-      </div>
-      <div>
-       <label>DOCUMENTAÇÃO / VISTORIA</label>
-       <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.documentationCost??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'documentationCost',this.value)">
-      </div>
-      <div>
-       <label>CUSTOS EXTRA</label>
-       <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.extraCost??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'extraCost',this.value)">
-      </div>
-    </div>
-    <div class="summary favorite-financial">
-      <div class="info"><b>LUCRO</b><span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
-      <div class="info"><b>MARGEM</b><span>${costItem>0?(p/costItem*100).toFixed(2)+"%":"—"}</span></div>
-    </div>`:""}
    </div>`;
  }).join(""):'<span class="muted">Nenhum veículo em estoque.</span>';
 }
@@ -811,7 +772,14 @@ function openStockPage(){
  $("stockPage").style.display="block";
  $("stockNav").classList.add("active");
  renderStock();
- $("stockPage").scrollIntoView({behavior:"smooth",block:"start"});
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function toggleStockDetailsPage(){
+ const btn=$("stockExpandBtn");
+ const list=$("stockList");
+ if(!btn||!list)return;
+ const hidden=list.classList.toggle("stock-compact");
+ btn.textContent=hidden?"＋":"−";
 }
 function closeStockPage(){
  $("stockPage").style.display="none";
