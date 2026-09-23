@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Consulta FIPE">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Consulta FIPE</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#f3f4f6;color:#111827}
+.app-header{
+  background:#111827;
+  color:#fff;
+  padding:18px 18px 24px;
+  border-radius:0 0 26px 26px;
+  text-align:center;
+}
+.garage-logo{
+  display:block;
+  width:min(180px,48vw);
+  height:auto;
+  margin:0 auto 10px;
+  border-radius:50%;
+  box-shadow:0 0 18px #0008;
+}
+.app-header h1{
+  margin:0 0 4px;
+  font-size:28px;
+  letter-spacing:.4px;
+}
+.app-header p{
+  margin:0;
+  color:#d1d5db;
+  font-size:15px;
+}
+
+main{max-width:780px;margin:-16px auto 40px;padding:0 14px}.card{background:#fff;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 5px 20px #0000000c}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}.tab{border:0;background:#e5e7eb;color:#374151;padding:13px 5px;border-radius:13px;font-weight:800;font-size:15px}.tab.active{background:#111827;color:#fff}
+label{display:block;font-size:13px;font-weight:800;color:#4b5563;margin:13px 0 6px}
+select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radius:12px;padding:0 13px;font-size:16px;background:#fff}button{cursor:pointer}
+.primary{background:#1478e5;color:#fff;border:0;font-weight:850;margin-top:15px}.primary:disabled{opacity:.55}.hidden{display:none!important}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.result{display:none}.price{font-size:38px;font-weight:900;color:#0b5fc4;margin:6px 0}.muted{color:#6b7280;font-size:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.info{background:#f8fafc;padding:12px;border-radius:12px}.info b{display:block;font-size:11px;color:#64748b;margin-bottom:4px}
+.error{background:#fef2f2;color:#991b1b;padding:12px;border-radius:12px;margin-top:12px;display:none}.ok{background:#ecfdf5;color:#065f46;padding:12px;border-radius:12px;margin-top:12px}
+.chart{margin-top:14px;background:#f8fafc;border-radius:15px;padding:10px}.chart svg{width:100%;height:235px}.line{fill:none;stroke:#1478e5;stroke-width:3}.dot{fill:#1478e5}.axis{font-size:10px;fill:#64748b}.val{font-size:10px;fill:#111827;font-weight:800}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.summary .info{font-size:13px}.positive{color:#047857;font-weight:850}.negative{color:#b91c1c;font-weight:850}
+.item{padding:12px 0;border-bottom:1px solid #e5e7eb}.item:last-child{border:0}.badge{display:inline-block;background:#e0ecff;color:#0756a8;padding:4px 8px;border-radius:99px;font-size:11px;font-weight:800}
+@media(max-width:520px){.row,.grid{grid-template-columns:1fr}.price{font-size:32px}.tabs button{font-size:14px}}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <img class="garage-logo" src="logo-garagem26.png" alt="Garagem 26 Veículos">
+  <h1>Consulta FIPE</h1>
+  <p>Carros • Motos • Caminhões</p>
+</header>
+<main>
+
+<div class="card">
+ <div class="tabs">
+  <button class="tab active" data-type="cars">🚗 Carros</button>
+  <button class="tab" data-type="motorcycles">🏍️ Motos</button>
+  <button class="tab" data-type="trucks">🚚 Caminhões</button>
+ </div>
+
+ <label>Marca</label>
+ <select id="brand"><option>Carregando marcas...</option></select>
+
+ <label>Modelo</label>
+ <select id="model" disabled><option>Selecione a marca primeiro</option></select>
+
+ <label>Ano / combustível</label>
+ <select id="year" disabled><option>Selecione o modelo primeiro</option></select>
+
+ <button class="primary" id="consult" disabled>🔎 Consultar valor FIPE</button>
+ <div id="error" class="error"></div>
+</div>
+
+<div class="card result" id="result">
+ <div class="muted" id="ref"></div>
+ <div class="price" id="price"></div>
+ <h2 id="title" style="margin:4px 0 14px;font-size:21px"></h2>
+ <div class="grid">
+  <div class="info"><b>MARCA</b><span id="rbrand"></span></div>
+  <div class="info"><b>ANO MODELO</b><span id="ryear"></span></div>
+  <div class="info"><b>COMBUSTÍVEL</b><span id="rfuel"></span></div>
+  <div class="info"><b>CÓDIGO FIPE</b><span id="rcode"></span></div>
+ </div>
+</div>
+
+<div class="card result" id="historyCard">
+ <h3 style="margin:0">📈 Histórico de preços</h3>
+ <div class="muted" id="historyNote" style="margin-top:4px"></div>
+ <div id="chart" class="chart"></div>
+ <div id="summary" class="summary"></div>
+ <div id="historyRows" style="margin-top:10px"></div>
+</div>
+
+<div class="card">
+ <h3 style="margin-top:0">🕘 Histórico de consultas</h3>
+ <div id="consultHistory"><span class="muted">Nenhuma consulta ainda.</span></div>
+</div>
+
+<div class="card">
+ <details>
+  <summary style="font-weight:800;cursor:pointer">⚙️ Histórico de 12 meses</summary>
+  <p class="muted">A consulta atual funciona sem cadastro. A API FIPE disponibiliza histórico mais longo mediante autenticação/plano. Se você tiver um token da Fipe API, cole aqui para habilitar o histórico disponível para sua conta.</p>
+  <input id="token" type="password" placeholder="Token opcional da Fipe API" autocomplete="off">
+  <button class="primary" id="saveToken">Salvar token neste aparelho</button>
+  <div id="tokenStatus"></div>
+ </details>
+</div>
+
+<div class="card"><div class="muted">O valor FIPE é uma referência média nacional. O preço efetivo pode variar conforme região, conservação, quilometragem, acessórios e condições de negociação.</div></div>
+</main>
+
+<script>
+const BASE="https://fipe.parallelum.com.br/api/v2";
+let type="cars";
+let brandCache=[];
+const $=id=>document.getElementById(id);
+
+function token(){return localStorage.getItem("fipeToken")||""}
+function headers(){const t=token();return t?{"X-Subscription-Token":t}:{}}
+async function api(path){
+ const r=await fetch(BASE+path,{headers:headers(),cache:"no-store"});
+ if(!r.ok){
+   if(r.status===429) throw Error("Limite diário da consulta atingido. Tente novamente mais tarde ou use um token gratuito.");
+   if(r.status===401||r.status===403) throw Error("A API recusou a autenticação. Verifique o token.");
+   throw Error("Não foi possível carregar os dados da FIPE agora.");
+ }
+ return r.json();
+}
+function setError(msg){$("error").textContent=msg;$("error").style.display=msg?"block":"none"}
+function setOptions(sel,items,placeholder,fn){
+ sel.innerHTML=`<option value="">${placeholder}</option>`+items.map(fn).join("");
+ sel.disabled=false;
+}
+async function loadBrands(){
+ setError("");$("brand").disabled=true;$("model").disabled=true;$("year").disabled=true;$("consult").disabled=true;
+ $("brand").innerHTML="<option>Carregando marcas...</option>";
+ try{
+  brandCache=await api(`/${type}/brands`);
+  setOptions($("brand"),brandCache,"Selecione a marca",x=>`<option value="${x.code}">${esc(x.name)}</option>`);
+ }catch(e){
+  $("brand").innerHTML='<option value="">Não foi possível carregar</option>';
+  setError(e.message);
+ }
+}
+async function loadModels(){
+ const b=$("brand").value;if(!b)return;
+ $("model").disabled=true;$("year").disabled=true;$("consult").disabled=true;
+ $("model").innerHTML="<option>Carregando modelos...</option>";
+ try{
+  const a=await api(`/${type}/brands/${b}/models`);
+  setOptions($("model"),a,"Selecione o modelo",x=>`<option value="${x.code}">${esc(x.name)}</option>`);
+ }catch(e){setError(e.message)}
+}
+async function loadYears(){
+ const b=$("brand").value,m=$("model").value;if(!b||!m)return;
+ $("year").disabled=true;$("consult").disabled=true;
+ $("year").innerHTML="<option>Carregando anos...</option>";
+ try{
+  const a=await api(`/${type}/brands/${b}/models/${m}/years`);
+  setOptions($("year"),a,"Selecione ano / combustível",x=>`<option value="${x.code}">${esc(x.name)}</option>`);
+ }catch(e){setError(e.message)}
+}
+function brNumber(v){
+ const s=String(v||"").replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",",".");
+ const n=Number(s);return Number.isFinite(n)?n:null;
+}
+function money(n){return n==null?"—":n.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0})}
+function monthLabel(s){return String(s||"").replace(" de ","/").replace("janeiro","jan").replace("fevereiro","fev").replace("março","mar").replace("abril","abr").replace("maio","mai").replace("junho","jun").replace("julho","jul").replace("agosto","ago").replace("setembro","set").replace("outubro","out").replace("novembro","nov").replace("dezembro","dez")}
+function renderChart(history){
+ const a=(history||[]).map(x=>({month:x.month,price:brNumber(x.price),ref:Number(x.reference)})).filter(x=>x.price!=null).sort((a,b)=>a.ref-b.ref);
+ if(!a.length){$("historyCard").style.display="none";return}
+ $("historyCard").style.display="block";
+ const shown=a.slice(-13), vals=shown.map(x=>x.price), min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;
+ const W=720,H=235,L=52,R=12,T=22,B=38;
+ const pts=shown.map((x,i)=>({x:L+i*(W-L-R)/Math.max(1,shown.length-1),y:T+(max-x.price)*(H-T-B)/range,...x}));
+ const poly=pts.map(p=>`${p.x},${p.y}`).join(" ");
+ const dots=pts.map(p=>`<circle class="dot" cx="${p.x}" cy="${p.y}" r="3.2"/><text class="val" x="${p.x}" y="${p.y-9}" text-anchor="middle">${Math.round(p.price/1000)}k</text>`).join("");
+ const labels=pts.map((p,i)=>i%2===0||i===pts.length-1?`<text class="axis" x="${p.x}" y="${H-12}" text-anchor="middle">${monthLabel(p.month)}</text>`:"").join("");
+ $("chart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline class="line" points="${poly}"/>${dots}${labels}</svg>`;
+ const first=shown[0].price,last=shown[shown.length-1].price,chg=(last-first)/first*100;
+ $("summary").innerHTML=`<div class="info"><b>INÍCIO</b>${money(first)}</div><div class="info"><b>ATUAL</b>${money(last)}</div><div class="info"><b>VARIAÇÃO</b><span class="${chg>=0?'positive':'negative'}">${chg>=0?"+":""}${chg.toFixed(1)}%</span></div>`;
+ $("historyRows").innerHTML=shown.slice().reverse().map(x=>`<div class="item" style="display:flex;justify-content:space-between"><span>${esc(x.month)}</span><b>${money(x.price)}</b></div>`).join("");
+ const n=shown.length;
+ $("historyNote").textContent=n>=12?"Últimos 12 meses de referência":"Histórico disponível para esta conta/API: "+n+" referências";
+}
+async function consult(){
+ const b=$("brand").value,m=$("model").value,y=$("year").value;if(!b||!m||!y)return;
+ $("consult").disabled=true;$("consult").textContent="Consultando...";
+ try{
+  const x=await api(`/${type}/brands/${b}/models/${m}/years/${y}`);
+  $("result").style.display="block";
+  $("ref").textContent="Referência: "+(x.referenceMonth||"—");
+  $("price").textContent=x.price||"—";
+  $("title").textContent=`${x.brand||""} ${x.model||""}`;
+  $("rbrand").textContent=x.brand||"—";$("ryear").textContent=x.modelYear||"—";$("rfuel").textContent=x.fuel||"—";$("rcode").textContent=x.codeFipe||"—";
+  renderChart(x.priceHistory||[]);
+  saveConsult({title:`${x.brand} ${x.model}`,year:x.modelYear,fuel:x.fuel,price:x.price,code:x.codeFipe,ref:x.referenceMonth});
+  $("result").scrollIntoView({behavior:"smooth",block:"start"});
+ }catch(e){setError(e.message)}
+ finally{$("consult").disabled=false;$("consult").textContent="🔎 Consultar valor FIPE"}
+}
+function saveConsult(x){let h=JSON.parse(localStorage.getItem("fipeConsults")||"[]");h=[x,...h].slice(0,15);localStorage.setItem("fipeConsults",JSON.stringify(h));renderConsults()}
+function renderConsults(){let h=JSON.parse(localStorage.getItem("fipeConsults")||"[]");$("consultHistory").innerHTML=h.length?h.map(x=>`<div class="item"><b>${esc(x.title)}</b><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • ${esc(x.price)} • ${esc(x.code)}</div></div>`).join(""):'<span class="muted">Nenhuma consulta ainda.</span>'}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));t.classList.add("active");type=t.dataset.type;loadBrands()});
+$("brand").onchange=loadModels;$("model").onchange=loadYears;$("year").onchange=()=>{$("consult").disabled=!$("year").value};$("consult").onclick=consult;
+$("saveToken").onclick=()=>{const v=$("token").value.trim();if(v)localStorage.setItem("fipeToken",v);else localStorage.removeItem("fipeToken");$("tokenStatus").innerHTML='<div class="ok">Token salvo neste aparelho.</div>';loadBrands()};
+if(token()){$("token").value=token();$("tokenStatus").innerHTML='<div class="ok">Token configurado.</div>'}
+renderConsults();loadBrands();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
