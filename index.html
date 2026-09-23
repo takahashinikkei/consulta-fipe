@@ -88,7 +88,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 .fixed-reference span{font-size:14px}
 .fixed-reference strong{font-size:15px;color:#a87912}
 
-.stock-compact .stock-details-extra{display:none}</style>
+.stock-compact .stock-details-extra{display:none}.stock-item-arrow{width:24px!important;height:24px!important;padding:0!important;border:1px solid #cbd5e1!important;border-radius:6px!important;background:#fff!important;color:#64748b!important;font-size:13px!important;font-weight:900!important;line-height:22px!important;cursor:pointer!important}.stock-item-sold{width:auto!important;height:28px!important;padding:0 9px!important;border:0!important;border-radius:7px!important;background:#b91c1c!important;color:#fff!important;font-size:11px!important;font-weight:900!important;cursor:pointer!important}.stock-item-sold:hover{opacity:.9}</style>
 </head>
 <body>
 <header class="app-header">
@@ -142,10 +142,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 <div class="card stock-page" id="stockPage">
  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
   <h3 style="margin:0">📦 Estoque de veículos</h3>
-  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-   <button class="secondary small-btn" onclick="closeStockPage()">← Voltar</button>
-   <button class="secondary small-btn" id="stockExpandBtn" onclick="toggleStockDetailsPage()">＋</button>
-  </div>
+  <button class="secondary small-btn" onclick="closeStockPage()">← Voltar</button>
  </div>
  <div id="stockList" style="margin-top:10px"><span class="muted">Nenhum veículo em estoque.</span></div>
  <div class="stock-summary">
@@ -746,16 +743,23 @@ function renderStock(){
    const costItem=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0);
    const pv=stockPriceValue(x), sale=Number(x.saleValue)||0, p=(sale>0?sale:pv)-costItem;
    const km=x.km?Number(x.km).toLocaleString("pt-BR")+" km":"";
+   const open=!!x.stockDetailsOpen;
    return `<div class="item">
     <div style="display:flex;justify-content:space-between;gap:8px">
-     <div style="min-width:0"><b>${esc(x.title)}</b><span class="status-badge status-stock">✓ Em estoque</span>
+     <div style="min-width:0">
+      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+       <b>${esc(x.title)}</b>
+       <span class="status-badge status-stock">✓ Em estoque</span>
+       <button class="stock-item-arrow" title="${open?"Ocultar dados do veículo":"Mostrar dados do veículo"}" onclick="toggleStockDetails(${i})">${open?"⌃":"⌄"}</button>
+       <button class="stock-item-sold" onclick="moveToSold(${i})">Vendido</button>
+      </div>
       <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Venda: '+money(sale):''}${km?' • KM: '+esc(km):''}
        <span class="pc-select"><button class="${x.pc==="P"?"active":""}" onclick="setFavoritePC(${i},'P')">P</button><button class="${x.pc==="C"?"active":""}" onclick="setFavoritePC(${i},'C')">C</button></span>
       </div>
       <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)} • Lucro: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
      </div>
     </div>
-    <div class="stock-details-extra" style="display:none;margin-top:8px">
+    ${open?`<div class="stock-details-extra" style="margin-top:8px">
       <div class="stock-fields">
        <div><label>PLACA</label><input value="${esc(x.plate||"")}" maxlength="7" placeholder="ABC1D23" onchange="saveFavoriteField(${i},'plate',this.value)"></div>
        <div><label>KM</label><input type="number" min="0" value="${x.km??""}" onchange="saveFavoriteField(${i},'km',this.value)"></div>
@@ -766,7 +770,7 @@ function renderStock(){
        <div><label>DOCUMENTAÇÃO / VISTORIA</label><input type="number" min="0" step="0.01" value="${x.documentationCost??""}" onchange="saveFavoriteField(${i},'documentationCost',this.value)"></div>
        <div><label>CUSTOS EXTRA</label><input type="number" min="0" step="0.01" value="${x.extraCost??""}" onchange="saveFavoriteField(${i},'extraCost',this.value)"></div>
       </div>
-    </div>
+    </div>`:""}
    </div>`;
  }).join(""):'<span class="muted">Nenhum veículo em estoque.</span>';
 }
@@ -777,12 +781,7 @@ function openStockPage(){
  renderStock();
  window.scrollTo({top:0,behavior:"smooth"});
 }
-function toggleStockDetailsPage(){
- const extras=document.querySelectorAll("#stockList .stock-details-extra");
- const hidden=extras.length ? extras[0].style.display==="none" : true;
- extras.forEach(el=>el.style.display=hidden?"block":"none");
- const btn=$("stockExpandBtn"); if(btn)btn.textContent=hidden?"−":"＋";
-}
+function toggleStockDetailsPage(){ renderStock(); }
 function closeStockPage(){
  $("stockPage").style.display="none";
  $("stockNav").classList.remove("active");
