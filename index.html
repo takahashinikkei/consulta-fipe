@@ -104,6 +104,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
   <button class="tab" data-type="motorcycles">🏍️ Motos</button>
   <button class="tab" data-type="trucks">🚚 Caminhões</button>
   <button class="stock-nav" id="stockNav">📦 Estoque</button>
+  <button class="stock-nav" id="soldNav">🚘 Vendidos</button>
  </div>
 
  <label>1. Mês de referência</label>
@@ -155,18 +156,15 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
   <div class="info"><b>CÓDIGO FIPE</b><span id="rcode"></span></div>
  </div>
  <div class="actions">
-  <button class="gold" id="favoriteBtn">☆ Adicionar aos meus veículos</button>
+  <button class="gold" id="favoriteBtn">☆ Adicionar ao estoque</button>
   <button class="secondary" id="shareBtn">↗ Compartilhar cotação</button>
  </div>
 </div>
 
-<div class="card">
+<div class="card" id="favoritesCard" style="display:none">
  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
   <h3 style="margin:0">⭐ Meus veículos</h3>
-  <div style="display:flex;gap:6px">
-   <button class="secondary small-btn" onclick="openSoldPage()">🚘 Vendidos</button>
-   <button class="secondary small-btn" id="clearFavorites">Limpar</button>
-  </div>
+  <button class="secondary small-btn" id="clearFavorites">Limpar</button>
  </div>
  <div id="favorites"><span class="muted">Nenhum veículo favorito ainda.</span></div>
 </div>
@@ -592,7 +590,7 @@ function getFavorites(){return JSON.parse(localStorage.getItem("fipeFavorites")|
 function isFavorite(q){return getFavorites().some(x=>quoteKey(x)===quoteKey(q))}
 function updateFavoriteButton(){
  if(!currentQuote)return;
- $("favoriteBtn").textContent=isFavorite(currentQuote)?"★ Remover dos meus veículos":"☆ Adicionar aos meus veículos";
+ $("favoriteBtn").textContent=isFavorite(currentQuote)?"★ Remover do estoque":"☆ Adicionar aos meus veículos";
  $("favoriteBtn").className=isFavorite(currentQuote)?"gold":"secondary";
 }
 function toggleFavorite(q=currentQuote){
@@ -753,6 +751,7 @@ function closeStockPage(){
  $("stockPage").style.display="none";
  $("stockNav").classList.remove("active");
  document.querySelectorAll("main > .card").forEach(el=>{if(el.id!=="stockPage")el.style.display=""});
+ $("favoritesCard").style.display="none";
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function getSold(){return JSON.parse(localStorage.getItem("fipeSold")||"[]")}
@@ -765,6 +764,7 @@ function openSoldPage(){
 function closeSoldPage(){
  $("soldPage").style.display="none";
  document.querySelectorAll("main > .card").forEach(el=>{if(el.id!=="soldPage")el.style.display=""});
+ $("favoritesCard").style.display="none";
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function moveToSold(i){
@@ -861,6 +861,7 @@ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
  loadBrands();
 });
 $("stockNav").onclick=()=>openStockPage();
+$("soldNav").onclick=()=>openSoldPage();
 $("reference").onchange=async()=>{
  referenceCode=$("reference").value;
  const b=$("brand").value;
@@ -896,7 +897,7 @@ $("favoriteBtn").onclick=()=>toggleFavorite();
 $("shareBtn").onclick=()=>shareQuote();
 $("clearHistory").onclick=()=>{localStorage.removeItem("fipeConsults");renderConsults()};
 $("clearFavorites").onclick=()=>{localStorage.removeItem("fipeFavorites");renderFavorites();updateFavoriteButton()};
-renderConsults();renderFavorites();renderSold();$("clearSold").onclick=()=>{localStorage.removeItem("fipeSold");renderSold()};
+$("favoritesCard").style.display="none";renderConsults();renderFavorites();renderSold();$("clearSold").onclick=()=>{localStorage.removeItem("fipeSold");renderSold()};
 (async()=>{await loadReferences(); await loadBrands()})();
 </script>
 <script>
