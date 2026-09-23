@@ -64,7 +64,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 .favorite-fields input{height:40px;font-size:14px;border-radius:10px;padding:0 10px}
 .favorite-financial{margin-top:8px}
 .favorite-financial .info{padding:8px 10px;font-size:12px}
-.favorite-financial .info b{font-size:9px;margin-bottom:2px}.sold-page{display:none}.sold-back{margin-bottom:12px}.sold-btn{background:#047857;color:#fff;border:0;font-weight:850}.stock-btn{background:#047857;color:#fff;border:0;font-weight:850}.sold-btn{background:#e5e7eb;color:#374151;border:1px solid #cbd5e1}.status-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px;font-size:11px;font-weight:900;margin-left:6px;vertical-align:middle}.status-stock{background:#047857;color:#fff}.status-sold{background:#e5e7eb;color:#374151;border:1px solid #cbd5e1}.stock-nav{border:0;background:#e5e7eb;color:#374151;padding:13px 5px;border-radius:13px;font-weight:800;font-size:15px}.stock-nav.active{background:#111827;color:#fff}.stock-page{display:none}.stock-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.stock-summary .info{padding:10px}.stock-summary .info span{font-size:18px}.stock-profit{font-weight:900}.stock-positive{color:#047857}.stock-negative{color:#b91c1c}@media(max-width:700px){.tabs{grid-template-columns:repeat(2,1fr)}.stock-summary{grid-template-columns:1fr 1fr}}
+.favorite-financial .info b{font-size:9px;margin-bottom:2px}.sold-page{display:none}.sold-back{margin-bottom:12px}.sold-btn{background:#047857;color:#fff;border:0;font-weight:850}.stock-btn{background:#047857;color:#fff;border:0;font-weight:850}.sold-btn{background:#e5e7eb;color:#374151;border:1px solid #cbd5e1}.status-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px;font-size:11px;font-weight:900;margin-left:6px;vertical-align:middle}.status-stock{background:#047857;color:#fff}.status-sold{background:#e5e7eb;color:#374151;border:1px solid #cbd5e1}.stock-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.stock-fields label{font-size:11px;margin:3px 0 4px}.stock-fields input{height:40px;font-size:14px;border-radius:10px;padding:0 10px}.stock-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:8px;padding:7px 9px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;color:#374151;font-size:13px;font-weight:800;cursor:pointer}@media(max-width:520px){.stock-fields{grid-template-columns:1fr 1fr;gap:6px}.stock-fields input{height:38px;font-size:13px}}.stock-nav{border:0;background:#e5e7eb;color:#374151;padding:13px 5px;border-radius:13px;font-weight:800;font-size:15px}.stock-nav.active{background:#111827;color:#fff}.stock-page{display:none}.stock-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.stock-summary .info{padding:10px}.stock-summary .info span{font-size:18px}.stock-profit{font-weight:900}.stock-positive{color:#047857}.stock-negative{color:#b91c1c}@media(max-width:700px){.tabs{grid-template-columns:repeat(2,1fr)}.stock-summary{grid-template-columns:1fr 1fr}}
 .pc-select{display:inline-flex;gap:4px;margin-left:6px;vertical-align:middle}
 .pc-select button{width:24px;height:24px;padding:0;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#64748b;font-size:11px;font-weight:900;cursor:pointer}
 .pc-select button.active{background:#111827;color:#fff;border-color:#111827}
@@ -610,6 +610,7 @@ function saveFavoriteField(i,field,value){
  f[i].detailsOpen=true;
  localStorage.setItem("fipeFavorites",JSON.stringify(f));
  renderFavorites();
+ if(typeof renderStock==="function" && $("stockPage") && $("stockPage").style.display!=="none") renderStock();
  updateFavoriteButton();
 }
 function toggleFavoriteDetails(i){
@@ -717,6 +718,12 @@ function stockPriceValue(x){
  const n=String(x.price||"").replace(/[^0-9,.-]/g,"").replace(/\./g,"").replace(",",".");
  return Number(n)||0;
 }
+function toggleStockDetails(i){
+ let f=getFavorites(); if(!f[i])return;
+ f[i].stockDetailsOpen=!f[i].stockDetailsOpen;
+ localStorage.setItem("fipeFavorites",JSON.stringify(f));
+ renderStock();
+}
 function renderStock(){
  const f=getFavorites();
  let fipe=0,cost=0;
@@ -727,16 +734,55 @@ function renderStock(){
  $("stockProfitTotal").textContent=money(profit);
  $("stockProfitTotal").className="stock-profit "+(profit>=0?"stock-positive":"stock-negative");
  $("stockMarginTotal").textContent=(margin>=0?"+":"")+margin.toFixed(2)+"%";
- $("stockList").innerHTML=f.length?f.map(x=>{
+ $("stockList").innerHTML=f.length?f.map((x,i)=>{
    const costItem=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0);
    const pv=stockPriceValue(x);
    const p=pv-costItem;
+   const open=!!x.stockDetailsOpen;
    return `<div class="item">
     <div style="display:flex;justify-content:space-between;gap:8px">
-     <div><b>${esc(x.title)}</b><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}</div>
-     <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)} • Lucro projetado: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div></div>
-     <span class="status-badge status-stock">✓ Em estoque</span>
+     <div style="min-width:0"><b>${esc(x.title)}</b><span class="status-badge status-stock">✓ Em estoque</span>
+      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}</div>
+      <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)} • Lucro projetado: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
+     </div>
     </div>
+
+    <button class="stock-toggle" onclick="toggleStockDetails(${i})">
+      <span>${open?"−":"＋"} ${open?"Ocultar dados do veículo":"Dados do veículo"}</span>
+      <span>${open?"⌃":"⌄"}</span>
+    </button>
+
+    ${open?`<div class="stock-fields">
+      <div>
+       <label>PLACA</label>
+       <input value="${esc(x.plate||"")}" maxlength="7" placeholder="ABC1D23" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,7)" onchange="saveFavoriteField(${i},'plate',this.value)">
+      </div>
+      <div>
+       <label>CUSTOS EXTRA</label>
+       <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.extraCost??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'extraCost',this.value)">
+      </div>
+      <div>
+       <label>DATA DE COMPRA</label>
+       <input type="date" value="${esc(x.purchaseDate||"")}" onchange="saveFavoriteField(${i},'purchaseDate',this.value)">
+      </div>
+      <div>
+       <label>VALOR PAGO</label>
+       <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.purchaseValue??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'purchaseValue',this.value)">
+      </div>
+      <div>
+       <label>DATA DE VENDA</label>
+       <input type="date" value="${esc(x.saleDate||"")}" onchange="saveFavoriteField(${i},'saleDate',this.value)">
+      </div>
+      <div>
+       <label>VALOR VENDIDO</label>
+       <input type="number" min="0" step="0.01" inputmode="decimal" value="${x.saleValue??""}" placeholder="R$ 0,00" onchange="saveFavoriteField(${i},'saleValue',this.value)">
+      </div>
+    </div>
+
+    <div class="summary favorite-financial">
+      <div class="info"><b>LUCRO / PREJUÍZO PROJETADO</b><span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
+      <div class="info"><b>MARGEM PROJETADA</b><span>${costItem>0?(p/costItem*100).toFixed(2)+"%":"—"}</span></div>
+    </div>`:""}
    </div>`;
  }).join(""):'<span class="muted">Nenhum veículo em estoque.</span>';
 }
