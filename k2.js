@@ -1,0 +1,1 @@
+window.__k2='lishab';
