@@ -944,11 +944,15 @@ function moveToSold(i){
  let f=getFavorites(),x=f[i];
  if(!x)return;
  let sold=getSold();
- sold=[{...x,soldAt:new Date().toISOString()},...sold.filter(v=>quoteKey(v)!==quoteKey(x))].slice(0,100);
+ const item={...x,soldAt:new Date().toISOString(),detailsOpen:false};
+ sold=[item,...sold.filter(v=>quoteKey(v)!==quoteKey(item))].slice(0,100);
  f.splice(i,1);
  localStorage.setItem("fipeSold",JSON.stringify(sold));
  localStorage.setItem("fipeFavorites",JSON.stringify(f));
- renderFavorites();renderSold();updateFavoriteButton();openSoldPage();
+ renderFavorites();
+ renderSold();
+ updateFavoriteButton();
+ openSoldPage();
 }
 function toggleSoldDetails(i){
  let s=getSold(); if(!s[i])return;
@@ -973,7 +977,7 @@ function renderSold(){
      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${x.km?" • KM: "+Number(x.km).toLocaleString("pt-BR")+" km":""}</div>
      <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Venda: ${x.saleValue?money(Number(x.saleValue)):"—"}${x.saleDate?" • "+esc(x.saleDate):""} • Lucro: <span class="${r.cls}">${r.text}</span></div>
     </div>
-    <button class="vehicle-expand-btn" title="${open?"Recolher":"Abrir dados"}" onclick="toggleSoldDetails(${i})">${open?"−":"＋"}</button>
+    <button class="negotiation-expand-inline" style="display:inline-flex!important;width:34px!important;min-width:34px!important;max-width:34px!important;height:34px!important;flex:0 0 34px!important;flex-grow:0!important;flex-shrink:0!important;flex-basis:34px!important;margin:0 0 0 auto!important;padding:0!important;box-sizing:border-box!important;align-items:center!important;justify-content:center!important" title="${open?"Recolher":"Abrir dados"}" onclick="toggleSoldDetails(${i})">${open?"−":"＋"}</button>
    </div>
    ${open?`<div class="sold-details-extra" style="margin-top:8px">
     <div class="stock-fields">
@@ -1127,7 +1131,7 @@ $("favoritesCard").style.display="none";renderConsults();renderFavorites();rende
 </script>
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=33").catch(()=>{}));
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=34").catch(()=>{}));
 }
 </script>
 
