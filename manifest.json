@@ -1,19 +1,20 @@
 {
-  "name": "Garagem 26 - Consulta FIPE",
+  "name": "Garagem 26",
   "short_name": "Garagem 26",
-  "description": "Consulta de valores FIPE para carros, motos e caminhões.",
+  "description": "Consulta FIPE e gestão de veículos da Garagem 26.",
   "lang": "pt-BR",
   "start_url": "./?app=1",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f3f4f6",
+  "orientation": "portrait",
+  "background_color": "#111827",
   "theme_color": "#111827",
   "icons": [
     {
-      "src": "icon-garagem26.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "icon-garagem26.png",
+      "sizes": "694x690",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
