@@ -1,9 +1,9 @@
 {
-  "name": "Consulta FIPE",
-  "short_name": "FIPE",
+  "name": "Garagem 26 - Consulta FIPE",
+  "short_name": "Garagem 26",
   "description": "Consulta de valores FIPE para carros, motos e caminhões.",
   "lang": "pt-BR",
-  "start_url": "./",
+  "start_url": "./?app=1",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f4f6",
