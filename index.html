@@ -145,7 +145,6 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
   <h3 style="margin:0">📦 Estoque de veículos</h3>
   <div class="stock-page-controls">
    <button class="secondary small-btn" onclick="closeStockPage()">← Voltar</button>
-   <button class="secondary small-btn" id="stockExpandBtn" onclick="toggleStockDetailsPage()">＋</button>
   </div>
  </div>
  <div id="stockList" style="margin-top:10px"><span class="muted">Nenhum veículo em estoque.</span></div>
@@ -774,20 +773,15 @@ function renderStock(){
    const km=x.km?Number(x.km).toLocaleString("pt-BR")+" km":"";
    const itemOpen=!!x.stockItemDetailsOpen;
    return `<div class="item">
-    <div style="display:flex;justify-content:space-between;gap:8px">
-     <div style="min-width:0">
-      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
-       <b>${esc(x.title)}</b>
-       <span class="status-badge status-stock">✓ Em estoque</span>
-       <button class="stock-item-sold" onclick="moveToSold(${i})">Vendido</button>
-       <button class="vehicle-expand-btn" title="${itemOpen?"Recolher":"Abrir dados"}" onclick="toggleStockItemDetails(${i})">${itemOpen?"−":"＋"}</button>
-      </div>
-      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Saldo devedor: '+money(sale):''}${km?' • KM: '+esc(km):''}
-       <span class="pc-select"><button class="${x.pc==="P"?"active":""}" onclick="setFavoritePC(${i},'P')">P</button><button class="${x.pc==="C"?"active":""}" onclick="setFavoritePC(${i},'C')">C</button><button class="${x.pc==="A"?"active":""}" onclick="setFavoritePC(${i},'A')">A</button></span>
-      </div>
-      <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)}${x.color?" • Cor: "+esc(x.color):""} • Lucro: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
-
+    <div style="min-width:0">
+     <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+      <b>${esc(x.title)}</b>
+      <span class="status-badge status-stock">✓ Em estoque</span>
      </div>
+     <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Saldo devedor: '+money(sale):''}${km?' • KM: '+esc(km):''}
+      <span class="pc-select"><button class="${x.pc==="P"?"active":""}" onclick="setFavoritePC(${i},'P')">P</button><button class="${x.pc==="C"?"active":""}" onclick="setFavoritePC(${i},'C')">C</button><button class="${x.pc==="A"?"active":""}" onclick="setFavoritePC(${i},'A')">A</button></span>
+     </div>
+     <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)}${x.color?" • Cor: "+esc(x.color):""} • Lucro: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
     </div>
     <div class="stock-details-extra" style="display:${(stockDetailsExpanded||itemOpen)?"block":"none"};margin-top:8px">
       <div class="stock-fields">
@@ -799,9 +793,13 @@ function renderStock(){
        <div><label>VALOR DE VENDA</label><input type="number" min="0" step="0.01" value="${x.saleValue??""}" onchange="saveFavoriteField(${i},'saleValue',this.value)"></div>
        <div><label>DOCUMENTAÇÃO / VISTORIA</label><input type="number" min="0" step="0.01" value="${x.documentationCost??""}" onchange="saveFavoriteField(${i},'documentationCost',this.value)"></div>
        <div><label>MANUTENÇÕES / PREJUÍZO</label><input type="number" min="0" step="0.01" value="${x.maintenanceCost??""}" onchange="saveFavoriteField(${i},'maintenanceCost',this.value)"></div>
-       <div><label>COR</label><input  value="${esc(x.color||"")}" placeholder="Cor" onchange="saveFavoriteField(${i},'color',this.value)"></div>
+       <div><label>COR</label><input value="${esc(x.color||"")}" placeholder="Cor" onchange="saveFavoriteField(${i},'color',this.value)"></div>
        <div><label>CUSTOS EXTRA</label><input type="number" min="0" step="0.01" value="${x.extraCost??""}" onchange="saveFavoriteField(${i},'extraCost',this.value)"></div>
       </div>
+    </div>
+    <div class="actions">
+     <button class="secondary small-btn" onclick="moveToSold(${i})">Vendido</button>
+     <button class="negotiation-expand-inline" style="display:inline-flex!important;width:34px!important;min-width:34px!important;max-width:34px!important;height:34px!important;flex:0 0 34px!important;flex-grow:0!important;flex-shrink:0!important;flex-basis:34px!important;margin:0 0 0 auto!important;padding:0!important;box-sizing:border-box!important;align-items:center!important;justify-content:center!important" title="${itemOpen?"Recolher":"Abrir dados"}" onclick="toggleStockItemDetails(${i})">${itemOpen?"−":"＋"}</button>
     </div>
    </div>`;
  }).join(""):'<span class="muted">Nenhum veículo em estoque.</span>';
@@ -822,8 +820,6 @@ function openStockPage(){
 let stockDetailsExpanded=false;
 function toggleStockDetailsPage(){
  stockDetailsExpanded=!stockDetailsExpanded;
- const btn=$("stockExpandBtn");
- if(btn) btn.textContent=stockDetailsExpanded?"−":"＋";
  renderStock();
 }
 function closeStockPage(){
@@ -1121,7 +1117,7 @@ $("favoritesCard").style.display="none";renderConsults();renderFavorites();rende
 </script>
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=30").catch(()=>{}));
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=31").catch(()=>{}));
 }
 </script>
 
