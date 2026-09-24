@@ -121,7 +121,7 @@ function showAuth(){
  };
 }
 function hideAuth(){document.getElementById('sbAuth')?.remove();}
-function userBar(){if(!user)return;let b=document.getElementById('sbUser');if(!b){b=document.createElement('div');b.id='sbUser';document.body.appendChild(b)}b.innerHTML='<span class="sbUserName">👤 '+esc2(user.user_metadata?.username||user.email||'Usuário')+'</span><button id="sbLogout">Sair</button>';document.getElementById('sbLogout').onclick=()=>sb.auth.signOut();}
+function userBar(){if(!user)return;let b=document.getElementById('sbUser');if(!b){b=document.createElement('div');b.id='sbUser';document.body.appendChild(b)}b.innerHTML='<span class="sbUserName">👤 '+esc2(user.user_metadata?.username||user.email||'Usuário')+'</span>';}
 async function init(){
  document.documentElement.classList.add('auth-pending');
  if(!window.supabase?.createClient){console.error('Supabase JS não carregado');document.documentElement.classList.remove('auth-pending');return;}
