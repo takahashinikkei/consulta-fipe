@@ -868,7 +868,7 @@ function renderNegotiations(){
      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Venda: '+money(sale):''}${km?' • KM: '+esc(km):''}
       <span class="pc-select"><button class="${x.pc==="P"?"active":""}" onclick="saveNegotiationField(${i},'pc','P')">P</button><button class="${x.pc==="C"?"active":""}" onclick="saveNegotiationField(${i},'pc','C')">C</button><button class="${x.pc==="A"?"active":""}" onclick="saveNegotiationField(${i},'pc','A')">A</button></span>
      </div>
-     <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(cost)} • Lucro: <span class="${profit>=0?"stock-positive":"stock-negative"}">${money(profit)}</span><<span class="retouch-inline">RETOQUE? <button class="${x.retouch==="S"?"active":""}" onclick="saveNegotiationField(${i},'retouch','S')">S</button><button class="${x.retouch==="N"?"active":""}" onclick="saveNegotiationField(${i},'retouch','N')">N</button></span></div>
+     <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(cost)}${x.color?" • Cor: "+esc(x.color):""} • Lucro: <span class="${profit>=0?"stock-positive":"stock-negative"}">${money(profit)}</span><span class="retouch-inline">RETOQUE? <button class="${x.retouch==="S"?"active":""}" onclick="saveNegotiationField(${i},'retouch','S')">S</button><button class="${x.retouch==="N"?"active":""}" onclick="saveNegotiationField(${i},'retouch','N')">N</button></span></div>
 
     </div>
     </div>
