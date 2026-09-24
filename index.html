@@ -782,7 +782,7 @@ function renderStock(){
        <button class="stock-item-sold" onclick="moveToSold(${i})">Vendido</button>
        <button class="vehicle-expand-btn" title="${itemOpen?"Recolher":"Abrir dados"}" onclick="toggleStockItemDetails(${i})">${itemOpen?"−":"＋"}</button>
       </div>
-      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Venda: '+money(sale):''}${km?' • KM: '+esc(km):''}
+      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Saldo devedor: '+money(sale):''}${km?' • KM: '+esc(km):''}
        <span class="pc-select"><button class="${x.pc==="P"?"active":""}" onclick="setFavoritePC(${i},'P')">P</button><button class="${x.pc==="C"?"active":""}" onclick="setFavoritePC(${i},'C')">C</button><button class="${x.pc==="A"?"active":""}" onclick="setFavoritePC(${i},'A')">A</button></span>
       </div>
       <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)}${x.color?" • Cor: "+esc(x.color):""} • Lucro: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span></div>
@@ -845,7 +845,7 @@ function addToNegotiation(){
 }
 function saveNegotiationField(i,field,value){
  let n=getNegotiations();if(!n[i])return;
- if(["purchaseValue","saleValue","extraCost","documentationCost","maintenanceCost"].includes(field)) value=value===""?"":Number(value);
+ if(["purchaseValue","entryValue","saleValue","extraCost","documentationCost","maintenanceCost"].includes(field)) value=value===""?"":Number(value);
  if(field==="plate") value=String(value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,7);
  n[i][field]=value;localStorage.setItem("fipeNegotiations",JSON.stringify(n));renderNegotiations();
 }
@@ -858,7 +858,9 @@ function renderNegotiations(){
  const n=getNegotiations();
  el.innerHTML=n.length?n.map((x,i)=>{
   const cost=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0)+(Number(x.maintenanceCost)||0);
-  const sale=Number(x.saleValue)||0;
+  const purchase=Number(x.purchaseValue)||0;
+  const entry=Number(x.entryValue)||0;
+  const sale=Math.max(0,purchase-entry);
   const fipe=stockPriceValue(x);
   const profit=(sale>0?sale:fipe)-cost;
   const km=x.km?Number(x.km).toLocaleString("pt-BR")+" km":"";
@@ -878,9 +880,9 @@ function renderNegotiations(){
     <div><label>PLACA</label><input value="${esc(x.plate||"")}" maxlength="7" placeholder="ABC1D23" onchange="saveNegotiationField(${i},'plate',this.value)"></div>
     <div><label>KM</label><input type="number" min="0" value="${x.km??""}" onchange="saveNegotiationField(${i},'km',this.value)"></div>
     <div><label>DATA DE COMPRA</label><input type="date" value="${esc(x.purchaseDate||"")}" onchange="saveNegotiationField(${i},'purchaseDate',this.value)"></div>
-    <div><label>VALOR PAGO</label><input type="number" min="0" step="0.01" value="${x.purchaseValue??""}" onchange="saveNegotiationField(${i},'purchaseValue',this.value)"></div>
-    <div><label>DATA DE VENDA</label><input type="date" value="${esc(x.saleDate||"")}" onchange="saveNegotiationField(${i},'saleDate',this.value)"></div>
-    <div><label>VALOR DE VENDA</label><input type="number" min="0" step="0.01" value="${x.saleValue??""}" onchange="saveNegotiationField(${i},'saleValue',this.value)"></div>
+    <div><label>VALOR DA COMPRA</label><input type="number" min="0" step="0.01" value="${x.purchaseValue??""}" onchange="saveNegotiationField(${i},'purchaseValue',this.value)"></div>
+    <div><label>VALOR DE ENTRADA</label><input type="number" min="0" step="0.01" value="${x.entryValue??""}" onchange="saveNegotiationField(${i},'entryValue',this.value)"></div>
+    <div><label>SALDO DEVEDOR</label><input type="number" min="0" step="0.01" value="${Math.max(0,(Number(x.purchaseValue)||0)-(Number(x.entryValue)||0))}" readonly></div>
     <div><label>DOCUMENTAÇÃO / VISTORIA</label><input type="number" min="0" step="0.01" value="${x.documentationCost??""}" onchange="saveNegotiationField(${i},'documentationCost',this.value)"></div>
     <div><label>MANUTENÇÕES / PREJUÍZO</label><input type="number" min="0" step="0.01" value="${x.maintenanceCost??""}" onchange="saveNegotiationField(${i},'maintenanceCost',this.value)"></div>
     <div><label>COR</label><input  value="${esc(x.color||"")}" placeholder="Cor" onchange="saveNegotiationField(${i},'color',this.value)"></div>
