@@ -1,5 +1,5 @@
-const CACHE='garagem26-v42';
-const APP_SHELL=['./','./index.html','./manifest.json','./icon-garagem26.svg'];
+const CACHE='garagem26-v43';
+const APP_SHELL=['./','./index.html','./manifest.json','./icon-garagem26.svg','./icon-garagem26.png'];
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting()));
 });
