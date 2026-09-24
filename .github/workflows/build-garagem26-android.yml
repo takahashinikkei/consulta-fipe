@@ -2,6 +2,10 @@ name: Build Garagem 26 Android
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'mobile-app/**'
+      - '.github/workflows/build-garagem26-android.yml'
 
 jobs:
   android:
@@ -16,8 +20,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: mobile-app/package-lock.json
       - name: Install dependencies
         run: npm install
       - name: Add Android platform
