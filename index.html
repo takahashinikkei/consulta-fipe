@@ -88,7 +88,7 @@ select,input,button{width:100%;height:48px;border:1px solid #d1d5db;border-radiu
 .fixed-reference span{font-size:14px}
 .fixed-reference strong{font-size:15px;color:#a87912}
 
-.stock-page-header{position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding-right:0}.stock-page-controls{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:14px}.stock-page-controls #stockExpandBtn{margin-top:2px}.stock-page-header .small-btn{min-width:36px}.stock-class-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.stock-class-summary .info{padding:10px}.stock-class-summary .info span{font-size:18px;font-weight:800;display:block}.stock-class-summary .info small{display:block;margin-top:7px;font-size:10px;color:#64748b;font-weight:700}.stock-class-summary .info strong{display:block;margin-top:2px;font-size:16px}.stock-compact .stock-details-extra{display:none}.vehicle-extra-controls{.vehicle-color-label{font-size:11px;font-weight:700;color:#64748b;margin-left:4px;white-space:nowrap}.retouch-inline{display:inline-flex;align-items:center;gap:3px;margin-left:8px;white-space:nowrap;font-size:10px;color:#64748b;font-weight:700}.retouch-inline button{width:24px!important;height:24px!important;padding:0!important;border:1px solid #cbd5e1!important;border-radius:5px!important;background:#f8fafc!important;color:#334155!important;font-size:10px!important;font-weight:700!important;cursor:pointer!important}.retouch-inline button.active{background:#1e293b!important;color:#fff!important;border-color:#1e293b!important}display:flex;align-items:flex-end;gap:12px;margin-top:7px;flex-wrap:wrap}.vehicle-extra-controls label{display:block;font-size:10px;color:#64748b;font-weight:700;margin-bottom:3px}.vehicle-color-input{width:90px!important;height:30px!important;padding:4px 7px!important}.retouch-select{display:flex;gap:4px}.retouch-select button{width:28px!important;height:28px!important;padding:0!important;border:1px solid #cbd5e1!important;border-radius:6px!important;background:#f8fafc!important;color:#334155!important;font-size:11px!important;font-weight:700!important;cursor:pointer!important}.retouch-select button.active{background:#1e293b!important;color:#fff!important;border-color:#1e293b!important}.vehicle-expand-btn{flex:0 0 36px!important;width:36px!important;height:36px!important;padding:0!important;border:1px solid #cbd5e1!important;border-radius:8px!important;background:#f8fafc!important;color:#334155!important;font-size:16px!important;font-weight:700!important;cursor:pointer!important;line-height:34px!important}.vehicle-expand-btn:hover{background:#f1f5f9!important}.stock-item-sold{width:auto!important;height:28px!important;padding:0 9px!important;border:1px solid #cbd5e1!important;border-radius:7px!important;background:#f8fafc!important;color:#334155!important;font-size:11px!important;font-weight:700!important;cursor:pointer!important}.stock-item-sold:hover{background:#f1f5f9!important}</style>
+.stock-page-header{position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding-right:0}.stock-page-controls{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:14px}.stock-page-controls #stockExpandBtn{margin-top:2px}.stock-page-header .small-btn{min-width:36px}.stock-class-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.stock-class-summary .info{padding:10px}.stock-class-summary .info span{font-size:18px;font-weight:800;display:block}.stock-class-summary .info small{display:block;margin-top:7px;font-size:10px;color:#64748b;font-weight:700}.stock-class-summary .info strong{display:block;margin-top:2px;font-size:16px}.stock-compact .stock-details-extra{display:none}.vehicle-extra-controls{.vehicle-color-label{font-size:11px;font-weight:700;color:#64748b;margin-left:4px;white-space:nowrap}.retouch-inline{display:inline-flex;align-items:center;gap:4px;margin-left:12px;white-space:nowrap;font-size:10px;color:#64748b;font-weight:700;vertical-align:middle}.retouch-inline button{width:24px!important;height:24px!important;padding:0!important;border:1px solid #cbd5e1!important;border-radius:6px!important;background:#fff!important;color:#334155!important;font-size:11px!important;font-weight:700!important;cursor:pointer!important;vertical-align:middle}.retouch-inline button.active{background:#172033!important;color:#fff!important;border-color:#172033!important}.sold-color-inline{margin-left:6px;font-size:11px;font-weight:600;color:#64748b}</style>
 </head>
 <body>
 <header class="app-header">
@@ -776,7 +776,7 @@ function renderStock(){
     <div style="display:flex;justify-content:space-between;gap:8px">
      <div style="min-width:0">
       <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
-       <b>${esc(x.title)}</b>${x.color?`<span class="vehicle-color-label">Cor: ${esc(x.color||"")}</span>`:""}
+       <b>${esc(x.title)}</b>
        <span class="status-badge status-stock">✓ Em estoque</span>
        <button class="stock-item-sold" onclick="moveToSold(${i})">Vendido</button>
        <button class="vehicle-expand-btn" title="${itemOpen?"Recolher":"Abrir dados"}" onclick="toggleStockItemDetails(${i})">${itemOpen?"−":"＋"}</button>
@@ -784,7 +784,7 @@ function renderStock(){
       <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Venda: '+money(sale):''}${km?' • KM: '+esc(km):''}
        <span class="pc-select"><button class="${x.pc==="P"?"active":""}" onclick="setFavoritePC(${i},'P')">P</button><button class="${x.pc==="C"?"active":""}" onclick="setFavoritePC(${i},'C')">C</button><button class="${x.pc==="A"?"active":""}" onclick="setFavoritePC(${i},'A')">A</button></span>
       </div>
-      <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)} • Lucro: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span><span class="retouch-inline">RETOQUE? <button class="${x.retouch==="S"?"active":""}" onclick="saveFavoriteField(${i},'retouch','S')">S</button><button class="${x.retouch==="N"?"active":""}" onclick="saveFavoriteField(${i},'retouch','N')">N</button></span></div>
+      <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Custo: ${money(costItem)}${x.color?" • Cor: "+esc(x.color):""} • Lucro: <span class="${p>=0?"stock-positive":"stock-negative"}">${money(p)}</span><span class="retouch-inline">RETOQUE? <button class="${x.retouch==="S"?"active":""}" onclick="saveFavoriteField(${i},'retouch','S')">S</button><button class="${x.retouch==="N"?"active":""}" onclick="saveFavoriteField(${i},'retouch','N')">N</button></span></div>
 
      </div>
     </div>
@@ -798,7 +798,7 @@ function renderStock(){
        <div><label>VALOR DE VENDA</label><input type="number" min="0" step="0.01" value="${x.saleValue??""}" onchange="saveFavoriteField(${i},'saleValue',this.value)"></div>
        <div><label>DOCUMENTAÇÃO / VISTORIA</label><input type="number" min="0" step="0.01" value="${x.documentationCost??""}" onchange="saveFavoriteField(${i},'documentationCost',this.value)"></div>
        <div><label>MANUTENÇÕES / PREJUÍZO</label><input type="number" min="0" step="0.01" value="${x.maintenanceCost??""}" onchange="saveFavoriteField(${i},'maintenanceCost',this.value)"></div>
-       <div><label>COR</label><input class="vehicle-color-input" value="${esc(x.color||"")}" placeholder="Cor" onchange="saveFavoriteField(${i},'color',this.value)"></div>
+       <div><label>COR</label><input  value="${esc(x.color||"")}" placeholder="Cor" onchange="saveFavoriteField(${i},'color',this.value)"></div>
        <div><label>CUSTOS EXTRA</label><input type="number" min="0" step="0.01" value="${x.extraCost??""}" onchange="saveFavoriteField(${i},'extraCost',this.value)"></div>
       </div>
     </div>
@@ -864,7 +864,7 @@ function renderNegotiations(){
   const open=!!x.detailsOpen;
   return `<div class="item">
    <div style="display:flex;justify-content:space-between;gap:8px">
-    <div style="min-width:0"><b>${esc(x.title)}</b>${x.color?`<span class="vehicle-color-label">Cor: ${esc(x.color||"")}</span>`:""}<span class="status-badge" style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa">🔄 Em andamento</span>
+    <div style="min-width:0"><b>${esc(x.title)}</b><span class="status-badge" style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa">🔄 Em andamento</span>
      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${sale>0?' • Venda: '+money(sale):''}${km?' • KM: '+esc(km):''}
       <span class="pc-select"><button class="${x.pc==="P"?"active":""}" onclick="saveNegotiationField(${i},'pc','P')">P</button><button class="${x.pc==="C"?"active":""}" onclick="saveNegotiationField(${i},'pc','C')">C</button><button class="${x.pc==="A"?"active":""}" onclick="saveNegotiationField(${i},'pc','A')">A</button></span>
      </div>
@@ -883,7 +883,7 @@ function renderNegotiations(){
     <div><label>VALOR DE VENDA</label><input type="number" min="0" step="0.01" value="${x.saleValue??""}" onchange="saveNegotiationField(${i},'saleValue',this.value)"></div>
     <div><label>DOCUMENTAÇÃO / VISTORIA</label><input type="number" min="0" step="0.01" value="${x.documentationCost??""}" onchange="saveNegotiationField(${i},'documentationCost',this.value)"></div>
     <div><label>MANUTENÇÕES / PREJUÍZO</label><input type="number" min="0" step="0.01" value="${x.maintenanceCost??""}" onchange="saveNegotiationField(${i},'maintenanceCost',this.value)"></div>
-    <div><label>COR</label><input class="vehicle-color-input" value="${esc(x.color||"")}" placeholder="Cor" onchange="saveNegotiationField(${i},'color',this.value)"></div>
+    <div><label>COR</label><input  value="${esc(x.color||"")}" placeholder="Cor" onchange="saveNegotiationField(${i},'color',this.value)"></div>
     <div><label>CUSTOS EXTRA</label><input type="number" min="0" step="0.01" value="${x.extraCost??""}" onchange="saveNegotiationField(${i},'extraCost',this.value)"></div>
    </div>
    <div class="summary favorite-financial">
@@ -954,7 +954,7 @@ function renderSold(){
    <div style="display:flex;justify-content:space-between;gap:8px">
     <div style="min-width:0">
      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
-      <b>${esc(x.title)}</b>${x.color?`<span class="vehicle-color-label">Cor: ${esc(x.color||"")}</span>`:""}<span class="status-badge status-sold">✓ Vendido</span>
+      <b>${esc(x.title)}</b><span class="status-badge status-sold">✓ Vendido</span>
      </div>
      <div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • FIPE: ${esc(x.price||"")}${x.km?" • KM: "+Number(x.km).toLocaleString("pt-BR")+" km":""}</div>
      <div class="muted">${x.plate?"Placa: "+esc(x.plate)+" • ":""}Venda: ${x.saleValue?money(Number(x.saleValue)):"—"}${x.saleDate?" • "+esc(x.saleDate):""} • Lucro: <span class="${r.cls}">${r.text}</span></div>
@@ -971,7 +971,7 @@ function renderSold(){
      <div><label>VALOR DE VENDA</label><input type="number" min="0" step="0.01" value="${x.saleValue??""}" onchange="saveSoldField(${i},'saleValue',this.value)"></div>
      <div><label>DOCUMENTAÇÃO / VISTORIA</label><input type="number" min="0" step="0.01" value="${x.documentationCost??""}" onchange="saveSoldField(${i},'documentationCost',this.value)"></div>
      <div><label>MANUTENÇÕES / PREJUÍZO</label><input type="number" min="0" step="0.01" value="${x.maintenanceCost??""}" onchange="saveSoldField(${i},'maintenanceCost',this.value)"></div>
-     <div><label>COR</label><input class="vehicle-color-input" value="${esc(x.color||"")}" placeholder="Cor" onchange="saveSoldField(${i},'color',this.value)"></div>
+     <div><label>COR</label><input  value="${esc(x.color||"")}" placeholder="Cor" onchange="saveSoldField(${i},'color',this.value)"></div>
      <div><label>CUSTOS EXTRA</label><input type="number" min="0" step="0.01" value="${x.extraCost??""}" onchange="saveSoldField(${i},'extraCost',this.value)"></div>
     </div>
     <div class="summary favorite-financial">
