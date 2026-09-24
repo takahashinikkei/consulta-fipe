@@ -102,8 +102,23 @@ function showAuth(){
  const s=document.createElement('style');s.textContent='#sbAuth{position:fixed;inset:0;background:rgba(248,250,252,.98);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit}#sbAuth .box{width:min(430px,100%);background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;box-shadow:0 15px 50px #0002}#sbAuth h2{margin:0 0 6px}#sbAuth p{margin:0 0 18px;color:#64748b}#sbAuth label{display:block;margin:10px 0 5px;font-weight:700;font-size:13px}#sbAuth input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px}#sbAuth button{width:100%;margin-top:14px;padding:12px;border:0;border-radius:10px;font-weight:800;cursor:pointer;background:#111827;color:#fff}#sbAuth .secondary{background:#eef2f7;color:#111827}#sbAuth .msg{margin-top:12px;font-size:14px;color:#475569}#sbUser{position:fixed;right:12px;top:10px;z-index:9998;background:#fff;border:1px solid #ddd;border-radius:10px;padding:7px 10px;font-size:12px;box-shadow:0 2px 10px #0001}#sbUser button{margin-left:8px;border:0;background:none;text-decoration:underline;cursor:pointer}';document.head.appendChild(s);
  const d=document.createElement('div');d.id='sbAuth';d.innerHTML='<div class="box"><h2>🔐 Acesso à Garagem 26</h2><p>Entre para acessar o estoque compartilhado.</p><label>E-mail</label><input id="sbEmail" type="email" autocomplete="email" placeholder="seu@email.com"><label>Senha</label><input id="sbPassword" type="password" autocomplete="current-password" placeholder="Sua senha"><label>Nome de usuário (somente no cadastro)</label><input id="sbUsername" type="text" autocomplete="username" placeholder="Seu nome"><button id="sbLogin">Entrar</button><button id="sbSignup" class="secondary">Cadastrar usuário</button><div class="msg" id="sbMsg"></div></div>';document.body.appendChild(d);
  const msg=t=>document.getElementById('sbMsg').textContent=t;
- document.getElementById('sbLogin').onclick=async()=>{const email=document.getElementById('sbEmail').value.trim();if(!email)return msg('Informe seu e-mail.');msg('Enviando link de acesso...');const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:AUTH_REDIRECT'}});msg(error?error.message:'Link enviado. Verifique seu e-mail.');};
- document.getElementById('sbSignup').onclick=async()=>{const email=document.getElementById('sbEmail').value.trim(),username=document.getElementById('sbUsername').value.trim();if(!email||!username)return msg('Informe e-mail e nome de usuário.');msg('Criando cadastro...');const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:AUTH_REDIRECT',data:{username}}});msg(error?error.message:'Cadastro iniciado. Verifique seu e-mail para concluir.');};
+ document.getElementById('sbLogin').onclick=async()=>{
+  const email=document.getElementById('sbEmail').value.trim(),password=document.getElementById('sbPassword').value;
+  if(!email||!password)return msg('Informe e-mail e senha.');
+  msg('Entrando...');
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  msg(error?error.message:'');
+ };
+ document.getElementById('sbSignup').onclick=async()=>{
+  const email=document.getElementById('sbEmail').value.trim(),password=document.getElementById('sbPassword').value,username=document.getElementById('sbUsername').value.trim();
+  if(!email||!password||!username)return msg('Informe e-mail, senha e nome de usuário.');
+  if(password.length<6)return msg('A senha deve ter pelo menos 6 caracteres.');
+  msg('Criando cadastro...');
+  const {data,error}=await sb.auth.signUp({email,password,options:{data:{username}}});
+  if(error)return msg(error.message);
+  if(data?.session)return msg('Cadastro criado. Entrando...');
+  msg('Cadastro criado. Se a confirmação de e-mail estiver ativa, verifique seu e-mail.');
+ };
 }
 function hideAuth(){document.getElementById('sbAuth')?.remove();}
 function userBar(){if(!user)return;let b=document.getElementById('sbUser');if(!b){b=document.createElement('div');b.id='sbUser';document.body.appendChild(b)}b.innerHTML='👤 '+esc2(user.user_metadata?.username||user.email||'Usuário')+' <button id="sbLogout">Sair</button>';document.getElementById('sbLogout').onclick=()=>sb.auth.signOut();}
