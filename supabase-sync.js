@@ -123,16 +123,21 @@ function showAuth(){
 function hideAuth(){document.getElementById('sbAuth')?.remove();}
 function userBar(){if(!user)return;let b=document.getElementById('sbUser');if(!b){b=document.createElement('div');b.id='sbUser';document.body.appendChild(b)}b.innerHTML='<span class="sbUserName">👤 '+esc2(user.user_metadata?.username||user.email||'Usuário')+'</span><button id="sbLogout">Sair</button>';document.getElementById('sbLogout').onclick=()=>sb.auth.signOut();}
 async function init(){
- if(!window.supabase?.createClient){console.error('Supabase JS não carregado');return;}
+ document.documentElement.classList.add('auth-pending');
+ if(!window.supabase?.createClient){console.error('Supabase JS não carregado');document.documentElement.classList.remove('auth-pending');return;}
  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  patchStorage();showAuth();
  sb.auth.onAuthStateChange(async(event,session)=>{
   user=session?.user||null;
-  if(user){ready=false;hideAuth();userBar();await migrateLegacy();await loadVehicles();await loadHistory();ready=true;
+  if(user){ready=false;hideAuth();userBar();await migrateLegacy();await loadVehicles();await loadHistory();ready=true;document.documentElement.classList.remove('auth-pending');
    sb.channel('vehicles-live').on('postgres_changes',{event:'*',schema:'public',table:'vehicles'},()=>{clearTimeout(window.__sbRefresh);window.__sbRefresh=setTimeout(loadVehicles,250)}).subscribe();
-  }else{ready=false;document.getElementById('sbUser')?.remove();showAuth();}
+  }else{ready=false;document.getElementById('sbUser')?.remove();showAuth();document.documentElement.classList.remove('auth-pending');}
  });
- const {data}=await sb.auth.getSession();if(!data.session)showAuth();
+ const {data}=await sb.auth.getSession();
+ if(!data.session){
+   showAuth();
+   document.documentElement.classList.remove('auth-pending');
+ }
 }
 window.addEventListener('load',init);
 })();
