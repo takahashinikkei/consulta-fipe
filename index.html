@@ -998,7 +998,7 @@ function renderSold(){
      <div class="info"><b>RESULTADO (%)</b><span class="${r.cls}">${r.pct==null?"—":(r.pct>=0?"+":"")+r.pct.toFixed(2)+"%"}</span></div>
     </div>
    </div>`:""}
-   <div class="actions"><button class="secondary small-btn" onclick="consultSold(${i})">Consultar novamente</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
+   <div class="actions"><button class="secondary small-btn" onclick="removeSold(${i})">Remover</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
   </div>`;
  }).join("");
 }
@@ -1008,6 +1008,13 @@ function saveSoldField(i,field,value){
  if(field==="plate") value=String(value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,7);
  s[i][field]=value; s[i].detailsOpen=true;
  localStorage.setItem("fipeSold",JSON.stringify(s)); renderSold();
+}
+function removeSold(i){
+ let s=getSold();
+ if(!s[i])return;
+ s.splice(i,1);
+ localStorage.setItem("fipeSold",JSON.stringify(s));
+ renderSold();
 }
 function consultSold(i){
  const q=getSold()[i];if(!q)return;
@@ -1131,7 +1138,7 @@ $("favoritesCard").style.display="none";renderConsults();renderFavorites();rende
 </script>
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=34").catch(()=>{}));
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=35").catch(()=>{}));
 }
 </script>
 
