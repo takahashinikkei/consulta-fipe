@@ -10,8 +10,8 @@
   "theme_color": "#111827",
   "icons": [
     {
-      "src": "icon.svg",
-      "sizes": "any",
+      "src": "icon-garagem26.svg",
+      "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any"
     }
