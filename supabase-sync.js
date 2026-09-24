@@ -114,7 +114,7 @@ function showAuth(){
   if(!email||!password||!username)return msg('Informe e-mail, senha e nome de usuário.');
   if(password.length<6)return msg('A senha deve ter pelo menos 6 caracteres.');
   msg('Criando cadastro...');
-  const {data,error}=await sb.auth.signUp({email,password,options:{data:{username}}});
+  const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:AUTH_REDIRECT,data:{username}}});
   if(error)return msg(error.message);
   if(data?.session)return msg('Cadastro criado. Entrando...');
   msg('Cadastro criado. Se a confirmação de e-mail estiver ativa, verifique seu e-mail.');
