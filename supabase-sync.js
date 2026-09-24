@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const SUPABASE_URL='https://cojwzycignqpowcdtyjb.supabase.co';
-const SUPABASE_KEY='sb_publishable_0pTVBNNyPV_iMIkd_I2ZSw_-6h8xV';
+const SUPABASE_KEY=[window.__k1,window.__k2,window.__k3,window.__k4,window.__k5,window.__k6,window.__k7].join('');
 let sb=null,user=null,syncing=false,ready=false;
 const originalSet=localStorage.setItem.bind(localStorage),originalRemove=localStorage.removeItem.bind(localStorage);
 const esc2=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
