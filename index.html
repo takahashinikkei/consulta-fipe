@@ -891,7 +891,7 @@ function renderNegotiations(){
     <div class="info"><b>LUCRO</b><span class="${profit>=0?"stock-positive":"stock-negative"}">${money(profit)}</span></div>
     <div class="info"><b>MARGEM</b><span>${cost>0?(profit/cost*100).toFixed(2)+"%":"—"}</span></div>
    </div>`:""}
-   <div class="actions"><button class="secondary small-btn" onclick="consultNegotiation(${i})">🔎 Consultar novamente</button><button class="secondary small-btn" onclick="removeNegotiation(${i})">Remover</button></div>
+   <div class="actions"><button class="secondary small-btn" onclick="consultNegotiation(${i})">Concluído</button><button class="secondary small-btn" onclick="removeNegotiation(${i})">Remover</button></div>
   </div>`;
  }).join(""):'<span class="muted">Nenhum veículo em andamento.</span>';
 }
@@ -981,7 +981,7 @@ function renderSold(){
      <div class="info"><b>RESULTADO (%)</b><span class="${r.cls}">${r.pct==null?"—":(r.pct>=0?"+":"")+r.pct.toFixed(2)+"%"}</span></div>
     </div>
    </div>`:""}
-   <div class="actions"><button class="secondary small-btn" onclick="consultSold(${i})">🔎 Consultar novamente</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
+   <div class="actions"><button class="secondary small-btn" onclick="consultSold(${i})">Concluído</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
   </div>`;
  }).join("");
 }
@@ -1033,7 +1033,7 @@ function renderConsults(){
  let h=JSON.parse(localStorage.getItem("fipeConsults")||"[]");
  $("consultHistory").innerHTML=h.length?h.map((x,i)=>`<div class="item">
   <div style="display:flex;justify-content:space-between;gap:8px"><div><b>${esc(x.title)}</b><div class="muted">${esc(String(x.year))} • ${esc(x.fuel||"")} • ${esc(x.price||"")}</div><div class="muted">${new Date(x.at).toLocaleString("pt-BR")} • FIPE: ${esc(x.code||"")}</div></div><button class="favorite-btn" title="Favoritar" onclick="toggleHistoryFavorite(${i})">${isFavorite(x)?"★":"☆"}</button></div>
-  <div class="actions"><button class="secondary small-btn" onclick="consultHistory(${i})">🔎 Consultar novamente</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
+  <div class="actions"><button class="secondary small-btn" onclick="consultHistory(${i})">Concluído</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
  </div>`).join(""):'<span class="muted">Nenhuma consulta ainda.</span>';
 }
 function consultHistory(i){
