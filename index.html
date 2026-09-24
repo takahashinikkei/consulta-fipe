@@ -1163,5 +1163,28 @@ document.addEventListener('DOMContentLoaded', function(){
 <script src="./k6.js?v=2"></script>
 <script src="./k7.js?v=2"></script>
 <script src="./supabase-sync.js?v=6"></script>
+<script>
+if('serviceWorker' in navigator){
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=40').catch(()=>{}));
+}
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+ e.preventDefault();deferredInstallPrompt=e;
+ const b=document.getElementById('installAppBtn');if(b)b.style.display='block';
+});
+window.addEventListener('appinstalled',()=>{
+ deferredInstallPrompt=null;
+ const b=document.getElementById('installAppBtn');if(b)b.style.display='none';
+});
+function installGaragemApp(){
+ if(!deferredInstallPrompt){
+  alert('No iPhone, use Compartilhar → Adicionar à Tela de Início. No Android/Chrome, use o menu do navegador → Instalar aplicativo.');
+  return;
+ }
+ deferredInstallPrompt.prompt();
+ deferredInstallPrompt.userChoice.finally(()=>{deferredInstallPrompt=null;});
+}
+</script>
+<button id="installAppBtn" onclick="installGaragemApp()" style="display:none;position:fixed;right:14px;bottom:14px;z-index:9997;width:auto;height:46px;padding:0 16px;border:0;border-radius:999px;background:#111827;color:#fff;font-weight:800;box-shadow:0 5px 18px #0003">📱 Instalar Garagem 26</button>
 </body>
 </html>
