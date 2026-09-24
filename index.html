@@ -963,6 +963,8 @@ function toggleSoldDetails(i){
 function renderSold(){
  const s=getSold();
  if(!s.length){$("soldList").innerHTML='<span class="muted">Nenhum veículo vendido ainda.</span>';return}
+ const totals=s.reduce((acc,x)=>{const cost=(Number(x.purchaseValue)||0)+(Number(x.extraCost)||0)+(Number(x.documentationCost)||0)+(Number(x.maintenanceCost)||0);const profit=(Number(x.saleValue)||0)-cost;acc.cost+=cost;acc.profit+=profit;return acc;},{cost:0,profit:0});
+ const overallMargin=totals.cost>0?(totals.profit/totals.cost*100):null;
  $("soldList").innerHTML=s.map((x,i)=>{
   const r=favoriteFinancialResult(x);
   const open=!!x.detailsOpen;
@@ -1000,7 +1002,7 @@ function renderSold(){
    </div>`:""}
    <div class="actions"><button class="secondary small-btn" onclick="removeSold(${i})">Remover</button><button class="secondary small-btn" onclick="shareQuote(${JSON.stringify(x).replace(/</g,"\\u003c")})">Compartilhar</button></div>
   </div>`;
- }).join("");
+ }).join("")+`<div class="summary favorite-financial" style="margin-top:16px;padding-top:14px;border-top:2px solid #111827"><div class="info"><b>LUCRO GERAL</b><span class="${totals.profit>=0?"stock-positive":"stock-negative"}">${money(totals.profit)}</span></div><div class="info"><b>MARGEM GERAL</b><span>${overallMargin==null?"—":(overallMargin>=0?"+":"")+overallMargin.toFixed(2)+"%"}</span></div></div>`;
 }
 function saveSoldField(i,field,value){
  let s=getSold(); if(!s[i])return;
@@ -1138,7 +1140,7 @@ $("favoritesCard").style.display="none";renderConsults();renderFavorites();rende
 </script>
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=35").catch(()=>{}));
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=36").catch(()=>{}));
 }
 </script>
 
