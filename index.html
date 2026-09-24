@@ -862,7 +862,7 @@ function renderNegotiations(){
   const entry=Number(x.entryValue)||0;
   const sale=Math.max(0,purchase-entry);
   const fipe=stockPriceValue(x);
-  const profit=(sale>0?sale:fipe)-cost;
+  const profit=fipe-cost;
   const km=x.km?Number(x.km).toLocaleString("pt-BR")+" km":"";
   const open=!!x.detailsOpen;
   return `<div class="item">
