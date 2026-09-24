@@ -2,6 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<style id="authStartupStyle">html.auth-pending body > *:not(#sbAuth){visibility:hidden!important}html.auth-pending #sbAuth{visibility:visible!important}</style>
+<script>document.documentElement.classList.add("auth-pending");</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
 <link rel="manifest" href="manifest.json">
@@ -9,7 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Garagem 26">
 <link rel="icon" type="image/png" sizes="694x690" href="icon-garagem26.png"><link rel="apple-touch-icon" sizes="694x690" href="icon-garagem26.png">
-<title>Consulta FIPE</title>
+<title>Garagem 26</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#f3f4f6;color:#111827}
 .app-header{
@@ -1138,11 +1140,7 @@ $("clearFavorites").onclick=()=>{localStorage.removeItem("fipeFavorites");render
 $("favoritesCard").style.display="none";renderConsults();renderFavorites();renderSold();$("clearSold").onclick=()=>{localStorage.removeItem("fipeSold");renderSold()};
 (async()=>{await loadReferences(); await loadBrands()})();
 </script>
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=36").catch(()=>{}));
-}
-</script>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function(){
@@ -1165,26 +1163,61 @@ document.addEventListener('DOMContentLoaded', function(){
 <script src="./supabase-sync.js?v=6"></script>
 <script>
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=40').catch(()=>{}));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=44').catch(()=>{}));
 }
 let deferredInstallPrompt=null;
+let installPromptShown=false;
 window.addEventListener('beforeinstallprompt',e=>{
- e.preventDefault();deferredInstallPrompt=e;
- const b=document.getElementById('installAppBtn');if(b)b.style.display='block';
+ e.preventDefault(); deferredInstallPrompt=e;
+ maybeShowInstallPrompt();
 });
 window.addEventListener('appinstalled',()=>{
  deferredInstallPrompt=null;
- const b=document.getElementById('installAppBtn');if(b)b.style.display='none';
+ localStorage.setItem('garagem26Installed','1');
+ document.getElementById('installPrompt')?.style.setProperty('display','none');
 });
-function installGaragemApp(){
- if(!deferredInstallPrompt){
-  alert('No iPhone, use Compartilhar → Adicionar à Tela de Início. No Android/Chrome, use o menu do navegador → Instalar aplicativo.');
-  return;
- }
- deferredInstallPrompt.prompt();
- deferredInstallPrompt.userChoice.finally(()=>{deferredInstallPrompt=null;});
+function isStandalone(){
+ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
 }
+function maybeShowInstallPrompt(){
+ if(installPromptShown || isStandalone() || localStorage.getItem('garagem26InstallDismissed')==='1') return;
+ installPromptShown=true;
+ const p=document.getElementById('installPrompt');
+ if(p)p.style.display='flex';
+}
+function closeInstallPrompt(){
+ const p=document.getElementById('installPrompt');
+ if(p)p.style.display='none';
+}
+function startInstall(){
+ if(deferredInstallPrompt){
+   deferredInstallPrompt.prompt();
+   deferredInstallPrompt.userChoice.finally(()=>{deferredInstallPrompt=null;closeInstallPrompt();});
+   return;
+ }
+ // iPhone/iPad and browsers without the native prompt: guide the user through the official menu.
+ const text=document.getElementById('installPromptText');
+ if(text)text.innerHTML='No iPhone, toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>. Ative <b>Abrir como App da Web</b> e toque em <b>Adicionar</b>.';
+ const yes=document.getElementById('installYes');
+ if(yes)yes.textContent='Entendi';
+ if(yes)yes.onclick=()=>closeInstallPrompt();
+}
+document.addEventListener('DOMContentLoaded',()=>{
+ document.getElementById('installYes')?.addEventListener('click',startInstall);
+ document.getElementById('installNo')?.addEventListener('click',()=>{
+   localStorage.setItem('garagem26InstallDismissed','1'); closeInstallPrompt();
+ });
+ setTimeout(maybeShowInstallPrompt,900);
+});
 </script>
-<button id="installAppBtn" onclick="installGaragemApp()" style="display:none;position:fixed;right:14px;bottom:14px;z-index:9997;width:auto;height:46px;padding:0 16px;border:0;border-radius:999px;background:#111827;color:#fff;font-weight:800;box-shadow:0 5px 18px #0003">📱 Instalar Garagem 26</button>
+<div id="installPrompt" style="display:none;position:fixed;inset:0;z-index:99998;background:rgba(17,24,39,.62);align-items:center;justify-content:center;padding:20px">
+  <div style="width:min(390px,100%);background:#fff;border-radius:22px;padding:24px;box-shadow:0 18px 60px #0004;text-align:center">
+    <div style="font-size:42px;margin-bottom:8px">📱</div>
+    <h2 style="margin:0 0 8px;color:#111827">Adicionar Garagem 26?</h2>
+    <p id="installPromptText" style="margin:0;color:#64748b;line-height:1.5">Tenha o Garagem 26 na tela inicial para abrir como aplicativo.</p>
+    <button id="installYes" style="margin-top:18px;background:#111827;color:#fff;border:0;border-radius:12px;height:46px;font-weight:800">Sim, adicionar</button>
+    <button id="installNo" style="margin-top:8px;background:#f3f4f6;color:#111827;border:1px solid #d1d5db;border-radius:12px;height:44px;font-weight:700">Agora não</button>
+  </div>
+</div>
 </body>
 </html>
