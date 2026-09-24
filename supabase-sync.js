@@ -49,6 +49,16 @@ async function syncVehicles(key,next,prev){
  const removed=old.map(x=>x.id).filter(Boolean).filter(id=>!ids.has(id));
  if(removed.length){const {error}=await sb.from('vehicles').delete().in('id',removed).eq('status',status);if(error)console.warn('Supabase delete vehicle:',error.message);}
 }
+async function migrateLegacy(){
+ if(!sb||!user)return;
+ const legacy=[['fipeFavorites','stock'],['fipeNegotiations','progress'],['fipeSold','sold']];
+ const {data:existing}=await sb.from('vehicles').select('id').limit(1);
+ if(!existing?.length){
+  for(const [k,status] of legacy){let arr=[];try{arr=JSON.parse(localStorage.getItem(k)||'[]')}catch{}if(arr.length)await syncVehicles(k,arr,'[]');}
+ }
+ const {data:h}=await sb.from('consult_history').select('id').limit(1);
+ if(!h?.length){let arr=[];try{arr=JSON.parse(localStorage.getItem('fipeConsults')||'[]')}catch{}for(const x of arr.slice(0,30).reverse())await syncConsultHistory(x);}
+}
 async function loadHistory(){
  if(!sb||!user)return;
  const {data,error}=await sb.from('consult_history').select('*').order('consulted_at',{ascending:false}).limit(30);
@@ -101,7 +111,7 @@ async function init(){
  patchStorage();showAuth();
  sb.auth.onAuthStateChange(async(event,session)=>{
   user=session?.user||null;
-  if(user){ready=false;hideAuth();userBar();await loadVehicles();await loadHistory();ready=true;
+  if(user){ready=false;hideAuth();userBar();await migrateLegacy();await loadVehicles();await loadHistory();ready=true;
    sb.channel('vehicles-live').on('postgres_changes',{event:'*',schema:'public',table:'vehicles'},()=>{clearTimeout(window.__sbRefresh);window.__sbRefresh=setTimeout(loadVehicles,250)}).subscribe();
   }else{ready=false;document.getElementById('sbUser')?.remove();showAuth();}
  });
