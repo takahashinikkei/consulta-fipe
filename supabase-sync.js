@@ -145,5 +145,93 @@ async function init(){
    document.documentElement.classList.remove('auth-pending');
  }
 }
+
+/* --- Nikkei Brasil: autorização e cadastro de funcionários ---
+   Mantém compatibilidade com a tela existente que chama
+   window.nikkeiCreateAccessRequest(...).
+*/
+window.nikkeiCreateAccessRequest = async function(input){
+  const payload = input && typeof input === 'object' ? {...input} : {};
+  if(!sb){
+    throw new Error('Sistema de acesso ainda está carregando. Tente novamente em alguns segundos.');
+  }
+  let currentUser = user;
+  if(!currentUser){
+    const sessionResult = await sb.auth.getSession();
+    currentUser = sessionResult?.data?.session?.user || null;
+  }
+  if(!currentUser){
+    throw new Error('Sessão expirada. Entre novamente no sistema.');
+  }
+
+  const clean = v => v == null ? null : String(v);
+  const row = {
+    requester_id: currentUser.id,
+    username: clean(payload.username || payload.email),
+    email: clean(payload.email || payload.username),
+    password_hash: clean(payload.passwordHash),
+    name: clean(payload.name),
+    surname: clean(payload.surname),
+    birth_date: clean(payload.birthDate),
+    age: clean(payload.age),
+    rg: clean(payload.rg),
+    cpf: clean(payload.cpf),
+    cep: clean(payload.cep),
+    city: clean(payload.city),
+    state: clean(payload.state),
+    address: clean(payload.address),
+    address_number: clean(payload.addressNumber),
+    neighborhood: clean(payload.neighborhood),
+    complement: clean(payload.complement),
+    phone: clean(payload.phone),
+    phone2: clean(payload.phone2),
+    phone_alt: clean(payload.phoneAlt),
+    emergency_name: clean(payload.emergencyName),
+    emergency_phone: clean(payload.emergencyPhone),
+    function_role: clean(payload.functionRole),
+    vehicle_type: clean(payload.vehicleType),
+    vehicle_subtype: clean(payload.vehicleSubtype),
+    vehicle_configuration: clean(payload.vehicleConfiguration),
+    plate_vehicle: clean(payload.plateVehicle),
+    plate_cavalo: clean(payload.plateCavalo),
+    plate_carreta: clean(payload.plateCarreta),
+    plate_carreta2: clean(payload.plateCarreta2),
+    cnh_file: payload.cnhFile || null,
+    payload
+  };
+
+  const {data, error} = await sb.from('access_requests').insert(row).select().single();
+  if(error){
+    console.error('Nikkei access request:', error);
+    throw new Error(error.message || 'Não foi possível enviar a solicitação.');
+  }
+  return {ok:true, data};
+};
+
+window.nikkeiListAccessRequests = async function(){
+  if(!sb || !user) throw new Error('Sessão não disponível.');
+  const {data,error}=await sb.from('access_requests').select('*').order('created_at',{ascending:false});
+  if(error) throw new Error(error.message);
+  return data || [];
+};
+
+window.nikkeiListEmployees = async function(){
+  if(!sb || !user) throw new Error('Sessão não disponível.');
+  const {data,error}=await sb.from('employees').select('*').order('created_at',{ascending:false});
+  if(error) throw new Error(error.message);
+  return data || [];
+};
+
+window.nikkeiDecideAccessRequest = async function(id,status,note=''){
+  if(!sb || !user) throw new Error('Sessão não disponível.');
+  if(!['approved','rejected'].includes(status)) throw new Error('Decisão inválida.');
+  const {data,error}=await sb.from('access_requests')
+    .update({status,decision_note:cleanDecisionNote(note),decided_by:user.id,decided_at:new Date().toISOString(),updated_at:new Date().toISOString()})
+    .eq('id',id).select().single();
+  if(error) throw new Error(error.message);
+  return {ok:true,data};
+};
+function cleanDecisionNote(v){ return v == null ? null : String(v).slice(0,1000); }
+
 window.addEventListener('load',init);
 })();
