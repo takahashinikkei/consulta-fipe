@@ -100,7 +100,7 @@ function patchStorage(){
 function showAuth(){
  if(document.getElementById('sbAuth'))return;
  const s=document.createElement('style');s.textContent='#sbAuth{position:fixed;inset:0;background:rgba(248,250,252,.98);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit}#sbAuth .box{width:min(430px,100%);background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;box-shadow:0 15px 50px #0002}#sbAuth h2{margin:0 0 6px}#sbAuth p{margin:0 0 18px;color:#64748b}#sbAuth label{display:block;margin:10px 0 5px;font-weight:700;font-size:13px}#sbAuth input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px}#sbAuth button{width:100%;margin-top:14px;padding:12px;border:0;border-radius:10px;font-weight:800;cursor:pointer;background:#111827;color:#fff}#sbAuth .secondary{background:#eef2f7;color:#111827}#sbAuth .msg{margin-top:12px;font-size:14px;color:#475569}#sbUser{position:fixed;right:14px;top:10px;z-index:99998;background:#fff;border:1px solid #d8dee8;border-radius:12px;padding:8px 12px;font-size:13px;font-weight:700;box-shadow:0 3px 14px #0002;display:flex;align-items:center;gap:10px;color:#1f2937}#sbUser .sbUserName{white-space:nowrap}#sbUser button{border:0;border-radius:8px;background:#111827;color:#fff;padding:6px 10px;font-weight:800;cursor:pointer}';document.head.appendChild(s);
- const d=document.createElement('div');d.id='sbAuth';d.innerHTML='<div class="box"><h2>🔐 Acesso à Garagem 26</h2><p>Entre para acessar o estoque compartilhado.</p><label>E-mail</label><input id="sbEmail" type="email" autocomplete="username email" placeholder="seu@email.com"><label>Senha</label><input id="sbPassword" type="password" autocomplete="current-password" placeholder="Sua senha"><label id="sbUsernameLabel">Nome de usuário (somente no cadastro)</label><input id="sbUsername" type="text" autocomplete="username" placeholder="Seu nome"><button id="sbLogin">Entrar</button><button id="sbSignup" class="secondary">Cadastrar usuário</button><div class="msg" id="sbMsg"></div></div>';document.body.appendChild(d);
+ const d=document.createElement('div');d.id='sbAuth';d.innerHTML='<div class="box"><h2>🔐 Acesso à Garagem 26</h2><p>Entre para acessar o estoque compartilhado.</p><label>E-mail</label><input id="sbEmail" type="email" autocomplete="email" placeholder="seu@email.com"><label>Senha</label><input id="sbPassword" type="password" autocomplete="current-password" placeholder="Sua senha"><label>Nome de usuário (somente no cadastro)</label><input id="sbUsername" type="text" autocomplete="username" placeholder="Seu nome"><button id="sbLogin">Entrar</button><button id="sbSignup" class="secondary">Cadastrar usuário</button><div class="msg" id="sbMsg"></div></div>';document.body.appendChild(d);
  const msg=t=>document.getElementById('sbMsg').textContent=t;
  document.getElementById('sbLogin').onclick=async()=>{
   const email=document.getElementById('sbEmail').value.trim(),password=document.getElementById('sbPassword').value;
@@ -117,13 +117,7 @@ function showAuth(){
   const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:AUTH_REDIRECT,data:{username}}});
   if(error)return msg(error.message);
   if(data?.session)return msg('Cadastro criado. Entrando...');
-  document.getElementById('sbUsernameLabel')?.remove();
-  document.getElementById('sbUsername')?.remove();
-  document.getElementById('sbSignup')?.remove();
-  const loginBtn=document.getElementById('sbLogin');
-  if(loginBtn)loginBtn.textContent='Entrar';
-  document.getElementById('sbEmail')?.focus();
-  msg('Cadastro criado. Agora entre com seu e-mail e senha.');
+  msg('Cadastro criado. Se a confirmação de e-mail estiver ativa, verifique seu e-mail.');
  };
 }
 function hideAuth(){document.getElementById('sbAuth')?.remove();}
@@ -145,93 +139,5 @@ async function init(){
    document.documentElement.classList.remove('auth-pending');
  }
 }
-
-/* --- Nikkei Brasil: autorização e cadastro de funcionários ---
-   Mantém compatibilidade com a tela existente que chama
-   window.nikkeiCreateAccessRequest(...).
-*/
-window.nikkeiCreateAccessRequest = async function(input){
-  const payload = input && typeof input === 'object' ? {...input} : {};
-  if(!sb){
-    throw new Error('Sistema de acesso ainda está carregando. Tente novamente em alguns segundos.');
-  }
-  let currentUser = user;
-  if(!currentUser){
-    const sessionResult = await sb.auth.getSession();
-    currentUser = sessionResult?.data?.session?.user || null;
-  }
-  if(!currentUser){
-    throw new Error('Sessão expirada. Entre novamente no sistema.');
-  }
-
-  const clean = v => v == null ? null : String(v);
-  const row = {
-    requester_id: currentUser.id,
-    username: clean(payload.username || payload.email),
-    email: clean(payload.email || payload.username),
-    password_hash: clean(payload.passwordHash),
-    name: clean(payload.name),
-    surname: clean(payload.surname),
-    birth_date: clean(payload.birthDate),
-    age: clean(payload.age),
-    rg: clean(payload.rg),
-    cpf: clean(payload.cpf),
-    cep: clean(payload.cep),
-    city: clean(payload.city),
-    state: clean(payload.state),
-    address: clean(payload.address),
-    address_number: clean(payload.addressNumber),
-    neighborhood: clean(payload.neighborhood),
-    complement: clean(payload.complement),
-    phone: clean(payload.phone),
-    phone2: clean(payload.phone2),
-    phone_alt: clean(payload.phoneAlt),
-    emergency_name: clean(payload.emergencyName),
-    emergency_phone: clean(payload.emergencyPhone),
-    function_role: clean(payload.functionRole),
-    vehicle_type: clean(payload.vehicleType),
-    vehicle_subtype: clean(payload.vehicleSubtype),
-    vehicle_configuration: clean(payload.vehicleConfiguration),
-    plate_vehicle: clean(payload.plateVehicle),
-    plate_cavalo: clean(payload.plateCavalo),
-    plate_carreta: clean(payload.plateCarreta),
-    plate_carreta2: clean(payload.plateCarreta2),
-    cnh_file: payload.cnhFile || null,
-    payload
-  };
-
-  const {data, error} = await sb.from('access_requests').insert(row).select().single();
-  if(error){
-    console.error('Nikkei access request:', error);
-    throw new Error(error.message || 'Não foi possível enviar a solicitação.');
-  }
-  return {ok:true, data};
-};
-
-window.nikkeiListAccessRequests = async function(){
-  if(!sb || !user) throw new Error('Sessão não disponível.');
-  const {data,error}=await sb.from('access_requests').select('*').order('created_at',{ascending:false});
-  if(error) throw new Error(error.message);
-  return data || [];
-};
-
-window.nikkeiListEmployees = async function(){
-  if(!sb || !user) throw new Error('Sessão não disponível.');
-  const {data,error}=await sb.from('employees').select('*').order('created_at',{ascending:false});
-  if(error) throw new Error(error.message);
-  return data || [];
-};
-
-window.nikkeiDecideAccessRequest = async function(id,status,note=''){
-  if(!sb || !user) throw new Error('Sessão não disponível.');
-  if(!['approved','rejected'].includes(status)) throw new Error('Decisão inválida.');
-  const {data,error}=await sb.from('access_requests')
-    .update({status,decision_note:cleanDecisionNote(note),decided_by:user.id,decided_at:new Date().toISOString(),updated_at:new Date().toISOString()})
-    .eq('id',id).select().single();
-  if(error) throw new Error(error.message);
-  return {ok:true,data};
-};
-function cleanDecisionNote(v){ return v == null ? null : String(v).slice(0,1000); }
-
 window.addEventListener('load',init);
 })();
